@@ -40,6 +40,14 @@ const HOME_STYLE = `<style>
     .program-section p { color:var(--grey); margin-bottom:0.3rem; }
     @media(max-width:600px) { .services-grid { grid-template-columns:1fr; } .why-grid { grid-template-columns:repeat(2,1fr); } .hero-btns .btn { width:100%; text-align:center; } }
     @media(max-width:380px) { .why-grid { grid-template-columns:1fr; } }
+    .cta-photo { position: relative; min-height: clamp(380px, 56vh, 600px); display: flex; align-items: center; padding: 3rem 1.5rem; overflow: hidden; background-color: #08090b; background-image: url('/banner2.jpg'); background-image: -webkit-image-set(url('/banner2.webp') type('image/webp'), url('/banner2.jpg') type('image/jpeg')); background-image: image-set(url('/banner2.webp') type('image/webp'), url('/banner2.jpg') type('image/jpeg')); background-size: cover; background-position: center right; background-repeat: no-repeat; }
+    .cta-photo::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,9,11,0.96) 0%, rgba(8,9,11,0.88) 28%, rgba(8,9,11,0.45) 54%, rgba(8,9,11,0.1) 78%, rgba(8,9,11,0) 100%); pointer-events: none; }
+    .cta-photo .cta-inner { max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+    .cta-photo .cta-box { max-width: 560px; }
+    .cta-photo h2 { font-family:'Barlow Condensed',sans-serif; font-size: clamp(2rem,5vw,3rem); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; line-height: 1.05; margin-bottom: 1rem; }
+    .cta-photo h2 span { color: var(--red); }
+    .cta-photo p { color: var(--grey-light); font-size: 1rem; line-height: 1.6; margin-bottom: 1.8rem; max-width: 460px; }
+    @media(max-width:760px) { .cta-photo { background-position: 72% center; } .cta-photo::before { background: linear-gradient(180deg, rgba(8,9,11,0.62) 0%, rgba(8,9,11,0.82) 55%, rgba(8,9,11,0.93) 100%); } }
 </style>`;
 
 app.get('/', async (c) => {
@@ -77,6 +85,11 @@ app.get('/', async (c) => {
         <div class="why-item"><div class="num">${esc(s.home_timp_revizie)}</div><h3>Timp mediu revizie</h3><p>Lucrăm eficient.</p></div>
     </div>
   </section>
+  <section class="cta-photo"><div class="cta-inner"><div class="cta-box">
+    <h2>Mașina ta, pe <span>mâini bune</span></h2>
+    <p>Diagnoză, reparații și revizii pentru orice marcă. Programează-te online în câteva minute și lasă restul în grija noastră.</p>
+    <div class="hero-btns">${heroBtns}</div>
+  </div></div></section>
   <section class="program-section">
     <h2>Program de <span>lucru</span></h2>
     <p>Luni — Vineri</p>
