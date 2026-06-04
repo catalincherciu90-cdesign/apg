@@ -21,7 +21,7 @@ crons = ["0 9 * * *"]
 
 [vars]
 SITE_NAME = "APG Garage"
-BASE_URL = "https://apg.catalincherciu90.workers.dev"
+BASE_URL = "https://apg-garage.ro"
 MAIL_FROM = "APG Garage <notificari@apg-garage.ro>"
 MAIL_ADMIN = "contact@apg-garage.ro"
 
