@@ -98,7 +98,7 @@ async function renderServicii(c: AppContext, error: string, success: string) {
 
   const body = `<div class="container">
     <div class="page-title">Gestionare <span>servicii</span></div>
-    <div class="page-subtitle">Adaugă, editează sau dezactivează serviciile oferite de servis.</div>
+    <div class="page-subtitle">Adaugă, editează sau dezactivează serviciile oferite de service.</div>
     ${error ? `<div class="alert alert-error">${esc(error)}</div>` : ''}
     ${success ? `<div class="alert alert-success">${esc(success)}</div>` : ''}
     <div class="adauga-form"><h3>+ Serviciu nou</h3>

@@ -398,7 +398,7 @@ function renderRezervare(c: AppContext, error: string, success: boolean, v: Reco
     <div class="page-title">Programare <span>nouă</span></div>
     <div class="page-subtitle">Completează datele mașinii, alege serviciul și data dorită</div>`;
   if (success) {
-    body += `<div class="card success-box"><div class="icon">✓</div><h2>Programare <span style="color:var(--red)">trimisă</span></h2><p>Programarea ta a fost înregistrată și este în așteptarea confirmării din partea servisului.</p><a href="/dashboard" class="btn btn-primary">Vezi programările mele</a></div></div>`;
+    body += `<div class="card success-box"><div class="icon">✓</div><h2>Programare <span style="color:var(--red)">trimisă</span></h2><p>Programarea ta a fost înregistrată și este în așteptarea confirmării din partea service-ului.</p><a href="/dashboard" class="btn btn-primary">Vezi programările mele</a></div></div>`;
     return c.html(page({ title: 'Programare nouă — APG Garage', user, nav: 'public', headExtra: REZ_STYLE, body }));
   }
   body += `${error ? `<div class="alert alert-error">${esc(error)}</div>` : ''}

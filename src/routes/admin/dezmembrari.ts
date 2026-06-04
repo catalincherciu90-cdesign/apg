@@ -180,7 +180,7 @@ app.post('/cereri-piese', async (c) => {
             <tr><td>Mașina</td><td>${esc((cerere.producator ?? '') + ' ' + (cerere.model ?? '') + ' ' + (cerere.an_fabricatie ?? ''))}</td></tr>
             <tr><td>Piesa cerută</td><td>${esc(cerere.piesa_dorita)}</td></tr>
             <tr><td>Disponibilitate</td><td><strong style="color:${culoare};">${statusText}</strong></td></tr>
-          </table><p style="margin-top:1rem;"><strong>Mesaj de la servis:</strong><br>${nl2br(raspuns)}</p>
+          </table><p style="margin-top:1rem;"><strong>Mesaj de la service:</strong><br>${nl2br(raspuns)}</p>
           <a href="${c.env.BASE_URL}/dezmembrari" class="btn">Vezi alte piese disponibile</a>`;
         c.executionCtx.waitUntil(trimiteEmail(c.env, cerere.email, 'Răspuns cerere piesă — APG Garage', emailTemplate('Răspuns la cererea ta de piesă', continut)));
       }
