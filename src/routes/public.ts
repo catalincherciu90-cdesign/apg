@@ -11,7 +11,7 @@ const GRID_BG = `repeating-linear-gradient(90deg, transparent, transparent 60px,
 
 /* ============================ HOME ============================ */
 const HOME_STYLE = `<style>
-    .hero { min-height: clamp(560px, 90vh, 900px); display: flex; align-items: center; padding: 3rem 1.5rem; position: relative; overflow: hidden; background-color: #08090b; background-image: url('/hero.jpg'); background-image: -webkit-image-set(url('/hero.webp') type('image/webp'), url('/hero.jpg') type('image/jpeg')); background-image: image-set(url('/hero.webp') type('image/webp'), url('/hero.jpg') type('image/jpeg')); background-size: cover; background-position: center right; background-repeat: no-repeat; }
+    .hero { min-height: calc(100vh - var(--nav-height)); display: flex; align-items: center; padding: 3rem 1.5rem; position: relative; overflow: hidden; background-color: #08090b; background-image: url('/hero.jpg'); background-image: -webkit-image-set(url('/hero.webp') type('image/webp'), url('/hero.jpg') type('image/jpeg')); background-image: image-set(url('/hero.webp') type('image/webp'), url('/hero.jpg') type('image/jpeg')); background-size: cover; background-position: center right; background-repeat: no-repeat; }
     .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,9,11,0.97) 0%, rgba(8,9,11,0.9) 28%, rgba(8,9,11,0.5) 52%, rgba(8,9,11,0.12) 74%, rgba(8,9,11,0) 100%); pointer-events: none; }
     .hero-inner { max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
     .hero-content { max-width: 600px; }
