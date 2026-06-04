@@ -2,12 +2,23 @@ import { Hono } from 'hono';
 import type { Env, Variables } from '../types';
 import { page, SITE_URL } from '../views/layout';
 import { esc, nl2br, numberFormat } from '../lib/format';
-import { getSetari } from '../lib/setari';
+import { getSetari, paginaActiva } from '../lib/setari';
 import { trimiteEmail, emailTemplate } from '../lib/mailer';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 const GRID_BG = `repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.015) 60px, rgba(255,255,255,0.015) 61px)`;
+
+// Pagină dezactivată din admin (Setări site)
+function paginaIndisponibila(c: any, titlu = 'Pagină indisponibilă') {
+  const body = `<div class="container" style="padding-top:4rem;padding-bottom:4rem;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:1rem;">🔧</div>
+    <div class="page-title" style="margin-bottom:0.5rem;">${esc(titlu)}</div>
+    <p style="color:var(--grey);margin-bottom:1.5rem;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.7;">Această pagină este momentan indisponibilă. Revino în curând sau contactează-ne direct.</p>
+    <a href="/contact" class="btn btn-primary">Contact</a> <a href="/" class="btn btn-outline">Acasă</a>
+  </div>`;
+  return c.html(page({ title: 'Indisponibil — APG Garage', user: c.get('user'), nav: 'public', robots: 'noindex, nofollow', body }));
+}
 
 /* ============================ HOME ============================ */
 const HOME_STYLE = `<style>
@@ -143,6 +154,7 @@ const DESPRE_STYLE = `<style>
 app.get('/despre', async (c) => {
   const user = c.get('user');
   const s = await getSetari(c.env);
+  if (!paginaActiva(s, 'pagina_despre')) return paginaIndisponibila(c);
   const texts = [s.despre_text_1, s.despre_text_2, s.despre_text_3].filter(Boolean).map((t) => `<p>${nl2br(t)}</p>`).join('');
   const body = `<section class="hero-small">
     <div class="section-label">Cine suntem</div>
@@ -211,6 +223,7 @@ const PRETURI_STYLE = `<style>
 
 app.get('/preturi', async (c) => {
   const user = c.get('user');
+  if (!paginaActiva(await getSetari(c.env), 'pagina_preturi')) return paginaIndisponibila(c);
   const { results } = await c.env.DB.prepare('SELECT * FROM preturi WHERE activ = 1 ORDER BY ordine ASC, id ASC').all<any>();
   const grouped = new Map<string, any[]>();
   for (const p of results ?? []) {
@@ -321,12 +334,14 @@ function contactBody(s: Record<string, string>, success: boolean, error: string,
 app.get('/contact', async (c) => {
   const user = c.get('user');
   const s = await getSetari(c.env);
+  if (!paginaActiva(s, 'pagina_contact')) return paginaIndisponibila(c);
   return c.html(page({ title: 'Contact — APG Garage', user, nav: 'public', path: '/contact', description: 'Contact APG Garage — adresă, telefon, program și formular. Sună-ne pentru o programare la service.', headExtra: CONTACT_STYLE, body: contactBody(s, false, '', {}) }));
 });
 
 app.post('/contact', async (c) => {
   const user = c.get('user');
   const s = await getSetari(c.env);
+  if (!paginaActiva(s, 'pagina_contact')) return paginaIndisponibila(c);
   const form = await c.req.formData();
   const nume = String(form.get('nume') ?? '').trim();
   const email = String(form.get('email') ?? '').trim();
