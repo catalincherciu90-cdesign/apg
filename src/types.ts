@@ -20,6 +20,7 @@ export interface SessionUser {
 
 export type Variables = {
   user: SessionUser | null;
+  pagini: Record<string, boolean>; // vizibilitatea paginilor pentru meniu
 };
 
 export type AppContext = Context<{ Bindings: Env; Variables: Variables }>;

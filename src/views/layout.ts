@@ -33,11 +33,12 @@ export interface PageOpts {
   path?: string; // calea curentă pentru canonical (ex: '/preturi')
   robots?: string; // ex: 'noindex, nofollow' pentru paginile private
   ogImage?: string; // cale imagine social (implicit /hero.jpg)
+  pagini?: Record<string, boolean>; // vizibilitate linkuri meniu public
 }
 
 export function page(opts: PageOpts): string {
   const nav = opts.nav ?? 'public';
-  const navHtml = nav === 'admin' ? navAdmin(opts.user, opts.currentPath ?? '') : nav === 'public' ? navPublic(opts.user) : '';
+  const navHtml = nav === 'admin' ? navAdmin(opts.user, opts.currentPath ?? '') : nav === 'public' ? navPublic(opts.user, opts.pagini) : '';
   const footer = nav === 'admin' ? '' : `<footer>© ${anCurent()} APG Garage. Toate drepturile rezervate.</footer>`;
   const desc = opts.description ?? DEFAULT_DESC;
   const canonical = SITE_URL + (opts.path ?? '');
@@ -75,7 +76,10 @@ ${opts.bodyEnd ?? ''}
 }
 
 // Port din src/views/nav.php (URL-uri curate)
-export function navPublic(user: SessionUser | null): string {
+export function navPublic(user: SessionUser | null, pagini?: Record<string, boolean>): string {
+  const vis = (key: string) => !pagini || pagini[key] !== false;
+  const pubLinks = `${vis('despre') ? '<a href="/despre">Despre noi</a>' : ''}${vis('preturi') ? '<a href="/preturi">Prețuri</a>' : ''}${vis('tractari') ? '<a href="/tractari">Tractări</a>' : ''}${vis('dezmembrari') ? '<a href="/dezmembrari">Dezmembrări</a>' : ''}${vis('contact') ? '<a href="/contact">Contact</a>' : ''}`;
+  const pubMobile = `${vis('despre') ? '<a href="/despre">Despre noi</a>' : ''}${vis('preturi') ? '<a href="/preturi">Prețuri</a>' : ''}${vis('tractari') ? '<a href="/tractari">Tractări auto</a>' : ''}${vis('dezmembrari') ? '<a href="/dezmembrari">Piese dezmembrări</a>' : ''}${vis('contact') ? '<a href="/contact">Contact</a>' : ''}`;
   let links = '';
   let mobile = '';
   if (user) {
@@ -94,22 +98,14 @@ export function navPublic(user: SessionUser | null): string {
   return `<nav>
     <a href="/" class="nav-logo" style="display:inline-flex;align-items:center;gap:0.6rem;"><img src="/logo.png" alt="A.P.G. Active shop" style="height:46px;width:auto;display:block;"><span>APG <span>Garage</span></span></a>
     <div class="nav-links">
-        <a href="/despre">Despre noi</a>
-        <a href="/preturi">Prețuri</a>
-        <a href="/tractari">Tractări</a>
-        <a href="/dezmembrari">Dezmembrări</a>
-        <a href="/contact">Contact</a>
+        ${pubLinks}
         ${links}
     </div>
     <button class="hamburger" id="hamburger" aria-label="Meniu" aria-expanded="false"><span></span><span></span><span></span></button>
 </nav>
 <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
     <a href="/">Acasă</a>
-    <a href="/despre">Despre noi</a>
-    <a href="/preturi">Prețuri</a>
-    <a href="/tractari">Tractări auto</a>
-    <a href="/dezmembrari">Piese dezmembrări</a>
-    <a href="/contact">Contact</a>
+    ${pubMobile}
     ${mobile}
 </div>
 <script>

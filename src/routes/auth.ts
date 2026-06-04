@@ -35,7 +35,7 @@ function loginBody(error: string, accesError: boolean, email: string): string {
 app.get('/login', (c) => {
   if (c.get('user')) return c.redirect('/dashboard');
   const accesError = c.req.query('eroare') === 'acces';
-  return c.html(page({ title: 'Autentificare — APG Garage', user: null, nav: 'public', robots: 'noindex, nofollow', headExtra: AUTH_STYLE, body: loginBody('', accesError, '') }));
+  return c.html(page({ title: 'Autentificare — APG Garage', user: null, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: AUTH_STYLE, body: loginBody('', accesError, '') }));
 });
 
 app.post('/login', async (c) => {
@@ -60,7 +60,7 @@ app.post('/login', async (c) => {
     }
     error = 'Email sau parolă incorectă.';
   }
-  return c.html(page({ title: 'Autentificare — APG Garage', user: null, nav: 'public', robots: 'noindex, nofollow', headExtra: AUTH_STYLE, body: loginBody(error, false, email) }));
+  return c.html(page({ title: 'Autentificare — APG Garage', user: null, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: AUTH_STYLE, body: loginBody(error, false, email) }));
 });
 
 function registerBody(error: string, success: string, vals: Record<string, string>): string {
@@ -83,7 +83,7 @@ function registerBody(error: string, success: string, vals: Record<string, strin
 
 app.get('/register', (c) => {
   if (c.get('user')) return c.redirect('/dashboard');
-  return c.html(page({ title: 'Creare cont — APG Garage', user: null, nav: 'public', robots: 'noindex, nofollow', headExtra: AUTH_STYLE, body: registerBody('', '', {}) }));
+  return c.html(page({ title: 'Creare cont — APG Garage', user: null, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: AUTH_STYLE, body: registerBody('', '', {}) }));
 });
 
 app.post('/register', async (c) => {
@@ -119,7 +119,7 @@ app.post('/register', async (c) => {
     }
   }
   const vals: Record<string, string> = error ? { nume, email, telefon } : {};
-  return c.html(page({ title: 'Creare cont — APG Garage', user: null, nav: 'public', robots: 'noindex, nofollow', headExtra: AUTH_STYLE, body: registerBody(error, success, vals) }));
+  return c.html(page({ title: 'Creare cont — APG Garage', user: null, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: AUTH_STYLE, body: registerBody(error, success, vals) }));
 });
 
 app.get('/logout', (c) => {

@@ -110,7 +110,7 @@ app.get('/dashboard', async (c) => {
     <div style="margin-top:1rem;"><a href="/rezervare" class="btn btn-primary" style="width:100%;text-align:center;display:block;">+ Programare nouă</a></div>`;
   }
   body += `</div>`;
-  return c.html(page({ title: 'Programările mele — APG Garage', user, nav: 'public', robots: 'noindex, nofollow', headExtra: DASH_STYLE, body }));
+  return c.html(page({ title: 'Programările mele — APG Garage', user, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: DASH_STYLE, body }));
 });
 
 /* ============================ MASINI ============================ */
@@ -276,7 +276,7 @@ async function renderMasini(c: AppContext, error: string, success: string) {
     document.getElementById('modal-edit').addEventListener('click',function(e){if(e.target===this)closeEdit();});
     function confirmaStergere(id,nr){if(confirm('Ștergi mașina '+nr+'? Această acțiune nu poate fi anulată.')){document.getElementById('sterge-id').value=id;document.getElementById('form-sterge').submit();}}
   </script>`;
-  return c.html(page({ title: 'Mașinile mele — APG Garage', user, nav: 'public', robots: 'noindex, nofollow', headExtra: MASINI_STYLE, body, bodyEnd }));
+  return c.html(page({ title: 'Mașinile mele — APG Garage', user, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: MASINI_STYLE, body, bodyEnd }));
 }
 
 /* ============================ REZERVARE ============================ */
@@ -399,7 +399,7 @@ function renderRezervare(c: AppContext, error: string, success: boolean, v: Reco
     <div class="page-subtitle">Completează datele mașinii, alege serviciul și data dorită</div>`;
   if (success) {
     body += `<div class="card success-box"><div class="icon">✓</div><h2>Programare <span style="color:var(--red)">trimisă</span></h2><p>Programarea ta a fost înregistrată și este în așteptarea confirmării din partea service-ului.</p><a href="/dashboard" class="btn btn-primary">Vezi programările mele</a></div></div>`;
-    return c.html(page({ title: 'Programare nouă — APG Garage', user, nav: 'public', robots: 'noindex, nofollow', headExtra: REZ_STYLE, body }));
+    return c.html(page({ title: 'Programare nouă — APG Garage', user, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: REZ_STYLE, body }));
   }
   body += `${error ? `<div class="alert alert-error">${esc(error)}</div>` : ''}
     <form method="POST" id="rez-form">
@@ -440,7 +440,7 @@ function renderRezervare(c: AppContext, error: string, success: boolean, v: Reco
     </form>
   </div>`;
   const bodyEnd = `<script>${REZ_SCRIPT}</script>`;
-  return c.html(page({ title: 'Programare nouă — APG Garage', user, nav: 'public', robots: 'noindex, nofollow', headExtra: REZ_STYLE, body, bodyEnd }));
+  return c.html(page({ title: 'Programare nouă — APG Garage', user, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: REZ_STYLE, body, bodyEnd }));
 }
 
 const REZ_SCRIPT = `(function(){
@@ -556,7 +556,7 @@ app.get('/deviz', async (c) => {
     <div class="total-final"><span class="label">Total de plată</span><span class="valoare">${numberFormat(total, 2)} lei</span></div>
     <a href="/dashboard" class="btn btn-outline">← Înapoi</a>
   </div></div>`;
-  return c.html(page({ title: 'Deviz — APG Garage', user, nav: 'public', robots: 'noindex, nofollow', headExtra: DEVIZ_STYLE, body }));
+  return c.html(page({ title: 'Deviz — APG Garage', user, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: DEVIZ_STYLE, body }));
 });
 
 export default app;
