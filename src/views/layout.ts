@@ -11,6 +11,7 @@ const HEAD_META = `
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="APG Garage">
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/logo.png">
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
     <script>if("serviceWorker"in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js");});}</script>
     <link rel="stylesheet" href="/css/style.css">`;
@@ -63,7 +64,7 @@ export function navPublic(user: SessionUser | null): string {
   }
 
   return `<nav>
-    <a href="/" class="nav-logo">APG <span>Garage</span></a>
+    <a href="/" class="nav-logo" style="display:inline-flex;align-items:center;gap:0.6rem;"><img src="/logo.png" alt="A.P.G. Active shop" style="height:46px;width:auto;display:block;"><span>APG <span>Garage</span></span></a>
     <div class="nav-links">
         <a href="/despre">Despre noi</a>
         <a href="/preturi">Prețuri</a>
@@ -121,7 +122,7 @@ export function navAdmin(user: SessionUser | null, current: string): string {
   }
 
   return `<nav id="admin-nav">
-    <a href="/admin" class="nav-logo">APG <span>Garage</span> <span style="font-size:0.7rem;color:#555;letter-spacing:1px;font-weight:400;">ADMIN</span></a>
+    <a href="/admin" class="nav-logo" style="display:inline-flex;align-items:center;gap:0.6rem;"><img src="/logo.png" alt="A.P.G. Active shop" style="height:42px;width:auto;display:block;"><span>APG <span>Garage</span> <span style="font-size:0.7rem;color:#555;letter-spacing:1px;font-weight:400;">ADMIN</span></span></a>
     <div class="nav-links" id="admin-nav-links">
         ${groups}
         <a href="/" style="color:var(--grey);font-size:0.85rem;letter-spacing:1px;text-transform:uppercase;">Site</a>
