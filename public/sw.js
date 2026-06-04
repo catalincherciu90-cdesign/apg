@@ -1,8 +1,9 @@
-const CACHE_NAME = 'apg-garage-v2';
+const CACHE_NAME = 'apg-garage-v3';
 const CACHE_URLS = [
     '/',
     '/css/style.css',
     '/logo.png',
+    '/hero.webp',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png',
     '/offline.html'

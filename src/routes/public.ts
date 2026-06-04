@@ -11,13 +11,11 @@ const GRID_BG = `repeating-linear-gradient(90deg, transparent, transparent 60px,
 
 /* ============================ HOME ============================ */
 const HOME_STYLE = `<style>
-    .hero { min-height: calc(100vh - var(--nav-height)); display: flex; align-items: center; padding: 3rem 1.5rem; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; inset: 0; background: ${GRID_BG}; pointer-events: none; }
-    .hero-inner { max-width: 1100px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 2.5rem; position: relative; z-index: 1; }
-    .hero-content { flex: 1 1 520px; max-width: 640px; }
-    .hero-art { flex: 1 1 420px; display: flex; justify-content: center; }
-    .hero-art img { width: 100%; max-width: 560px; height: auto; filter: drop-shadow(0 12px 28px rgba(0,0,0,0.55)); }
-    @media (max-width: 860px) { .hero-inner { flex-direction: column; gap: 1.5rem; } .hero-art img { max-width: 420px; } }
+    .hero { min-height: clamp(460px, 74vh, 720px); display: flex; align-items: center; padding: 3rem 1.5rem; position: relative; overflow: hidden; background-color: #08090b; background-image: url('/hero.jpg'); background-image: -webkit-image-set(url('/hero.webp') type('image/webp'), url('/hero.jpg') type('image/jpeg')); background-image: image-set(url('/hero.webp') type('image/webp'), url('/hero.jpg') type('image/jpeg')); background-size: cover; background-position: center right; background-repeat: no-repeat; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,9,11,0.97) 0%, rgba(8,9,11,0.9) 28%, rgba(8,9,11,0.5) 52%, rgba(8,9,11,0.12) 74%, rgba(8,9,11,0) 100%); pointer-events: none; }
+    .hero-inner { max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+    .hero-content { max-width: 600px; }
+    @media (max-width: 760px) { .hero { background-position: 72% center; } .hero::before { background: linear-gradient(180deg, rgba(8,9,11,0.6) 0%, rgba(8,9,11,0.82) 55%, rgba(8,9,11,0.93) 100%); } }
     .hero-tag { display:inline-block; background:var(--red); color:var(--black); font-size:0.7rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; padding:0.3rem 0.8rem; margin-bottom:1.2rem; }
     .hero-title { font-family:'Barlow Condensed',sans-serif; font-size:clamp(3.5rem,12vw,6rem); font-weight:800; line-height:0.95; text-transform:uppercase; letter-spacing:2px; margin-bottom:1.2rem; }
     .hero-title span { color:var(--red); }
@@ -58,7 +56,6 @@ app.get('/', async (c) => {
         <p class="hero-desc">${esc(s.home_descriere)}</p>
         <div class="hero-btns">${heroBtns}</div>
     </div>
-    <div class="hero-art"><img src="/hero.svg" alt="Service auto — mașină pe elevator" width="560" height="385"></div>
   </div></section>
   <section class="services-section">
     <div class="section-label">Ce facem</div>
