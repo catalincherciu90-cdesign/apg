@@ -35,7 +35,22 @@ export const SETARI_DEFAULT: Record<string, string> = {
   dezmembrari_telefon: '',
   dezmembrari_mesaj: 'Secțiunea de piese din dezmembrări nu este disponibilă momentan. Revino în curând sau contactează-ne direct.',
   dezmembrari_titlu: 'Serviciu indisponibil',
+  // Activare/dezactivare pagini informative
+  pagina_despre: '1',
+  pagina_preturi: '1',
+  pagina_contact: '1',
 };
+
+// Pagini informative care pot fi activate/dezactivate din admin (Setări site).
+export const PAGINI_TOGGLE = [
+  { key: 'pagina_despre', titlu: 'Pagina Despre noi', url: '/despre' },
+  { key: 'pagina_preturi', titlu: 'Pagina Prețuri', url: '/preturi' },
+  { key: 'pagina_contact', titlu: 'Pagina Contact', url: '/contact' },
+] as const;
+
+export function paginaActiva(s: Record<string, string>, key: string): boolean {
+  return (s[key] ?? '1') === '1';
+}
 
 export async function getSetari(env: Env): Promise<Record<string, string>> {
   const { results } = await env.DB.prepare('SELECT cheie, valoare FROM setari').all<{ cheie: string; valoare: string }>();

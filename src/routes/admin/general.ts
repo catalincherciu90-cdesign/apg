@@ -5,7 +5,7 @@ import { esc } from '../../lib/format';
 import { hashPassword } from '../../lib/password';
 import { getAll } from '../../lib/form';
 import { LABELS, SECTIUNI } from '../../lib/permisiuni';
-import { getSetari, setSetare } from '../../lib/setari';
+import { getSetari, setSetare, PAGINI_TOGGLE } from '../../lib/setari';
 import { createSessionCookie } from '../../lib/session';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -250,7 +250,7 @@ app.post('/setari', async (c) => {
   const cheie = String(form.get('cheie') ?? '');
   const valoare = String(form.get('valoare') ?? '').trim();
   const permise: Record<string, string[]> = {
-    toggle: ['tractari_activ', 'dezmembrari_activ'],
+    toggle: ['tractari_activ', 'dezmembrari_activ', 'pagina_despre', 'pagina_preturi', 'pagina_contact'],
     telefon: ['tractari_telefon', 'dezmembrari_telefon'],
     mesaj: ['tractari_mesaj', 'dezmembrari_mesaj'],
     titlu: ['tractari_titlu', 'dezmembrari_titlu'],
@@ -315,12 +315,29 @@ async function renderSetari(c: AppContext, success: string) {
     </div></div>`;
   }).join('');
 
+  const carduriPagini = PAGINI_TOGGLE.map((info) => {
+    const activ = (s[info.key] ?? '1') === '1';
+    return `<div class="setare-card ${activ ? 'on' : 'off'}" id="card-${info.key}"><div style="flex:1;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <div class="setare-info"><h3>${info.titlu}</h3><a href="${info.url}" target="_blank" class="preview-link" style="display:inline-block;margin-top:0.4rem;">Previzualizează →</a></div>
+        <div class="toggle-wrap"><span class="toggle-label ${activ ? 'on' : 'off'}" id="label-${info.key}">${activ ? 'Activă' : 'Inactivă'}</span>
+          <form method="POST" id="form-${info.key}"><input type="hidden" name="actiune" value="toggle"><input type="hidden" name="cheie" value="${info.key}"><input type="hidden" name="valoare" id="val-${info.key}" value="${activ ? '1' : '0'}">
+            <label class="toggle-switch"><input type="checkbox" ${activ ? 'checked' : ''} onchange="toggleSetare('${info.key}', this.checked)"><span class="toggle-slider"></span></label>
+          </form>
+        </div>
+      </div>
+    </div></div>`;
+  }).join('');
+
   const body = `<div class="container" style="max-width:750px;">
     <div class="page-title">Setări <span>site</span></div>
     <div class="page-subtitle">Activează sau dezactivează secțiunile publice ale site-ului.</div>
     ${success ? `<div class="alert alert-success">${esc(success)}</div>` : ''}
+    <div style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin:0.5rem 0 0.8rem;">Servicii cu formular</div>
     ${carduri}
-    <div class="alert alert-info" style="font-size:0.85rem;margin-top:1rem;">Când o pagină este dezactivată, clienții văd un mesaj că serviciul nu este disponibil momentan. Linkurile din meniu rămân vizibile.</div>
+    <div style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin:1.8rem 0 0.8rem;">Pagini informative</div>
+    ${carduriPagini}
+    <div class="alert alert-info" style="font-size:0.85rem;margin-top:1rem;">Când o pagină este dezactivată, vizitatorii văd un mesaj că pagina este indisponibilă. Linkurile din meniu rămân vizibile.</div>
   </div>`;
   const bodyEnd = `<script>
     function toggleSetare(cheie,activ){document.getElementById('val-'+cheie).value=activ?'1':'0';var card=document.getElementById('card-'+cheie);var label=document.getElementById('label-'+cheie);var slug=cheie.replace('_activ','');var telBox=document.getElementById('tel-box-'+slug);card.classList.toggle('on',activ);card.classList.toggle('off',!activ);label.className='toggle-label '+(activ?'on':'off');label.textContent=activ?'Activă':'Inactivă';if(telBox)telBox.classList.toggle('visible',!activ);document.getElementById('form-'+cheie).submit();}
