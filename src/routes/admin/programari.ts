@@ -135,7 +135,7 @@ app.get('/', async (c) => {
 
   const body = `<div class="container">
     <div class="page-title">Panou <span>Admin</span></div>
-    <div class="page-subtitle">Gestionează programările servisului</div>
+    <div class="page-subtitle">Gestionează programările service-ului</div>
     <div class="stats-row">
         <div class="stat-card"><div class="num" style="color:#f0a500">${stats.asteptare ?? 0}</div><div class="lbl">Așteptare</div></div>
         <div class="stat-card"><div class="num" style="color:#2ecc71">${stats.confirmat ?? 0}</div><div class="lbl">Confirmate</div></div>
@@ -213,7 +213,7 @@ async function renderBlocare(c: AppContext, error: string, success: string) {
 
   const body = `<div class="container" style="max-width:700px;">
     <div class="page-title">Zile <span>blocate</span></div>
-    <div class="page-subtitle">Marchează zilele în care servisul nu primește programări</div>
+    <div class="page-subtitle">Marchează zilele în care service-ul nu primește programări</div>
     ${error ? `<div class="alert alert-error">${esc(error)}</div>` : ''}
     ${success ? `<div class="alert alert-success">${esc(success)}</div>` : ''}
     <div class="card"><form method="POST" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;">

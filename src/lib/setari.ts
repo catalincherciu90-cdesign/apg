@@ -4,7 +4,7 @@ import type { Env } from '../types';
 // Cheile sunt cele citite de paginile publice si editate din /admin/continut, /admin/contact, /admin/setari.
 export const SETARI_DEFAULT: Record<string, string> = {
   // Hero / home
-  home_tag: 'Servis Auto București',
+  home_tag: 'Service Auto București',
   home_titlu: 'APG',
   home_subtitlu: 'Garage',
   home_descriere: 'Revizii și reparații mecanice profesionale. Programează-te online și evită timpul de așteptare.',
@@ -14,7 +14,7 @@ export const SETARI_DEFAULT: Record<string, string> = {
   home_timp_revizie: '2h',
   // Despre
   despre_titlu: 'Despre APG Garage',
-  despre_descriere: 'Un servis auto cu experiență, dedicat calității și transparenței.',
+  despre_descriere: 'Un service auto cu experiență, dedicat calității și transparenței.',
   despre_text_1: '',
   despre_text_2: '',
   despre_text_3: '',

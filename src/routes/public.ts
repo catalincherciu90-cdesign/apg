@@ -96,7 +96,7 @@ app.get('/', async (c) => {
     <p style="color:var(--grey);margin-bottom:1.5rem;">Sâmbătă și duminică: închis</p>
     <a href="/contact" class="btn btn-outline">Contactează-ne</a>
   </section>`;
-  return c.html(page({ title: 'APG Garage — Servis Auto', user, nav: 'public', headExtra: HOME_STYLE, body }));
+  return c.html(page({ title: 'APG Garage — Service Auto', user, nav: 'public', headExtra: HOME_STYLE, body }));
 });
 
 /* ============================ DESPRE ============================ */
@@ -279,7 +279,7 @@ function contactBody(s: Record<string, string>, success: boolean, error: string,
   return `<section class="hero-small">
     <div class="section-label">Suntem aici</div>
     <div class="page-title">Contact</div>
-    <div class="page-subtitle">Scrie-ne, sună-ne sau vino direct la servis.</div>
+    <div class="page-subtitle">Scrie-ne, sună-ne sau vino direct la service.</div>
   </section>
   <div class="container" style="padding-top:2.5rem;"><div class="contact-grid">
     <div>
@@ -405,7 +405,7 @@ function tractariBody(user: any, success: boolean, error: string, v: Record<stri
         <div class="info-box"><h3>Cum funcționează?</h3>
             <div class="info-item"><div class="icon">📋</div><div class="text"><strong>1. Completezi formularul</strong>Introduci locația, datele mașinii și descrii problema.</div></div>
             <div class="info-item"><div class="icon">📞</div><div class="text"><strong>2. Te sunăm înapoi</strong>Echipa noastră te contactează în cel mai scurt timp pentru a confirma.</div></div>
-            <div class="info-item"><div class="icon">🚛</div><div class="text"><strong>3. Trimitem mașina de tractare</strong>Ajungem la locația ta și transportăm vehiculul în siguranță la servis.</div></div>
+            <div class="info-item"><div class="icon">🚛</div><div class="text"><strong>3. Trimitem mașina de tractare</strong>Ajungem la locația ta și transportăm vehiculul în siguranță la service.</div></div>
         </div>
         <div class="info-box"><h3>Zonele de acoperire</h3>
             <div class="info-item"><div class="icon">📍</div><div class="text"><strong>București și Ilfov</strong>Acoperire completă în toată zona metropolitană.</div></div>

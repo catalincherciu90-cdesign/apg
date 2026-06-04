@@ -369,7 +369,7 @@ async function renderContinut(c: AppContext, tab: string, success: string) {
     <div class="tabs"><a href="?tab=home" class="tab ${tab === 'home' ? 'active' : ''}">Pagina principală</a><a href="?tab=despre" class="tab ${tab === 'despre' ? 'active' : ''}">Despre noi</a></div>
     <div class="panel ${tab === 'home' ? 'active' : ''}"><form method="POST"><input type="hidden" name="tab_return" value="home">
         <div class="section-card"><h3>Secțiunea Hero (prima imagine)</h3>
-            <div class="form-group"><label>Tag mic deasupra titlului</label><input type="text" name="home_tag" value="${esc(s.home_tag)}" placeholder="ex: Servis Auto București"><div class="hint">Apare pe fundal roșu deasupra titlului mare</div></div>
+            <div class="form-group"><label>Tag mic deasupra titlului</label><input type="text" name="home_tag" value="${esc(s.home_tag)}" placeholder="ex: Service Auto București"><div class="hint">Apare pe fundal roșu deasupra titlului mare</div></div>
             <div class="fg2"><div class="form-group"><label>Titlu mare (alb)</label><input type="text" name="home_titlu" value="${esc(s.home_titlu)}" placeholder="ex: APG"></div><div class="form-group"><label>Titlu mare (roșu)</label><input type="text" name="home_subtitlu" value="${esc(s.home_subtitlu)}" placeholder="ex: Garage"></div></div>
             <div class="form-group"><label>Descriere</label><textarea name="home_descriere" rows="3">${esc(s.home_descriere)}</textarea><div class="hint">Textul descriptiv de sub titlu</div></div>
         </div>
@@ -385,7 +385,7 @@ async function renderContinut(c: AppContext, tab: string, success: string) {
     <div class="panel ${tab === 'despre' ? 'active' : ''}"><form method="POST"><input type="hidden" name="tab_return" value="despre">
         <div class="section-card"><h3>Header pagină</h3>
             <div class="form-group"><label>Titlu pagină</label><input type="text" name="despre_titlu" value="${esc(s.despre_titlu)}" placeholder="ex: Despre APG Garage"></div>
-            <div class="form-group"><label>Subtitlu / descriere scurtă</label><input type="text" name="despre_descriere" value="${esc(s.despre_descriere)}" placeholder="ex: Un servis auto cu experiență..."></div>
+            <div class="form-group"><label>Subtitlu / descriere scurtă</label><input type="text" name="despre_descriere" value="${esc(s.despre_descriere)}" placeholder="ex: Un service auto cu experiență..."></div>
         </div>
         <div class="section-card"><h3>Povestea noastră</h3>
             <div class="form-group"><label>Paragraful 1</label><textarea name="despre_text_1" rows="4">${esc(s.despre_text_1)}</textarea></div>

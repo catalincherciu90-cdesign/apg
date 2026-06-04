@@ -116,7 +116,7 @@ export async function notificareProgramareNoua(
   await trimiteEmail(env, env.MAIL_ADMIN, `Programare nouă — ${nume} / ${nr}`, emailTemplate('Programare nouă în așteptare', continut));
 
   const continutClient = `
-    <p>Programarea ta a fost înregistrată cu succes și este în așteptarea confirmării din partea servisului.</p>
+    <p>Programarea ta a fost înregistrată cu succes și este în așteptarea confirmării din partea service-ului.</p>
     <table class="info-table">
       <tr><td>Mașina</td><td>${esc(nr)} — ${esc(producator + ' ' + model)}</td></tr>
       <tr><td>Serviciu</td><td>${serviciuText}</td></tr>
@@ -131,7 +131,7 @@ export async function notificareProgramareNoua(
 
 export async function notificareDevizNou(env: Env, email: string, nr: string, rezervareId: number, total: number) {
   const continut = `
-    <p>Servisul APG Garage a emis un deviz pentru mașina ta.</p>
+    <p>Service-ul APG Garage a emis un deviz pentru mașina ta.</p>
     <table class="info-table">
       <tr><td>Mașina</td><td>${esc(nr)}</td></tr>
       <tr><td>Total deviz</td><td><strong>${numberFormat(total, 2)} lei</strong></td></tr>
