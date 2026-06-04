@@ -1,4 +1,4 @@
-const CACHE_NAME = 'apg-garage-v4';
+const CACHE_NAME = 'apg-garage-v5';
 const CACHE_URLS = [
     '/',
     '/css/style.css',
