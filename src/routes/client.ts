@@ -129,7 +129,7 @@ const MASINI_STYLE = `<style>
     .masina-actions { display: flex; gap: 0.5rem; }
     .masina-actions button, .masina-actions a { flex: 1; padding: 0.45rem 0.5rem; font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border: 1px solid; background: none; text-align: center; text-decoration: none; transition: all 0.15s; }
     .btn-edit { border-color: var(--border); color: var(--grey); } .btn-edit:hover { border-color: var(--white); color: var(--white); }
-    .btn-prog { border-color: var(--red); color: var(--red); background: none; } .btn-prog:hover { background: var(--red); color: var(--white); }
+    .btn-prog { border-color: var(--red); color: var(--red); background: none; } .btn-prog:hover { background: var(--red); color: var(--black); }
     .btn-del { border-color: #333; color: #555; } .btn-del:hover { border-color: var(--red); color: var(--red); }
     .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999; align-items:center; justify-content:center; padding:1rem; }
     .modal.open { display:flex; }
@@ -375,7 +375,7 @@ const REZ_STYLE = `<style>
     .cal-day { text-align: center; padding: 0.5rem 0; font-size: 0.9rem; border: 1px solid transparent; cursor: default; transition: all 0.15s; }
     .cal-day.available { cursor: pointer; border-color: var(--border); color: var(--white); }
     .cal-day.available:hover { border-color: var(--red); color: var(--red); }
-    .cal-day.selected { background: var(--red); color: var(--white) !important; border-color: var(--red); }
+    .cal-day.selected { background: var(--red); color: var(--black) !important; border-color: var(--red); }
     .cal-day.past, .cal-day.weekend, .cal-day.blocked { color: #333; }
     .cal-day.empty { border: none; }
     .slots-wrap { margin-top: 1rem; }
@@ -383,7 +383,7 @@ const REZ_STYLE = `<style>
     .slots-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .slot-btn { padding: 0.5rem 1.2rem; border: 1px solid var(--border); background: none; color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 600; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; }
     .slot-btn:hover { border-color: var(--red); color: var(--red); }
-    .slot-btn.active { background: var(--red); border-color: var(--red); color: var(--white); }
+    .slot-btn.active { background: var(--red); border-color: var(--red); color: var(--black); }
     .section-divider { font-size: 0.72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin: 1.2rem 0 0.8rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
     .success-box { text-align: center; padding: 3rem 2rem; }
     .success-box .icon { font-size: 3rem; margin-bottom: 1rem; }
