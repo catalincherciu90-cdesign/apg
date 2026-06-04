@@ -5,7 +5,7 @@ import { anCurent, esc } from '../lib/format';
 
 // Domeniul canonic folosit pentru SEO (canonical, Open Graph, sitemap).
 // La trecerea pe domeniul propriu, schimbă-l aici și în wrangler.toml (BASE_URL).
-export const SITE_URL = 'https://apg.catalincherciu90.workers.dev';
+export const SITE_URL = 'https://apg-garage.ro';
 const DEFAULT_DESC = 'APG Garage — service auto în București: revizii, reparații mecanice, diagnoză, tractări și piese din dezmembrări. Programează-te online rapid.';
 
 const HEAD_META = `
