@@ -1,0 +1,30 @@
+name = "apg-garage"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Fisierele statice (css, iconite, manifest, sw.js, offline.html).
+# Caile care corespund unui fisier din ./public sunt servite direct;
+# restul ajung la Worker.
+assets = { directory = "./public", binding = "ASSETS" }
+
+# Baza de date D1
+[[d1_databases]]
+binding = "DB"
+database_name = "apg-garage"
+database_id = "8fbb0133-344c-4a95-b11c-553a3cc94bd0"
+migrations_dir = "migrations"
+
+# Notificari revizie — zilnic la 09:00 UTC (ca vechiul cron 0 9 * * *)
+[triggers]
+crons = ["0 9 * * *"]
+
+[vars]
+SITE_NAME = "APG Garage"
+BASE_URL = "https://apg-garage.ro"
+MAIL_FROM = "APG Garage <notificari@apg-garage.ro>"
+MAIL_ADMIN = "contact@apg-garage.ro"
+
+# Secrete (a se seta cu `wrangler secret put`):
+#   SESSION_SECRET   — cheie pentru semnarea cookie-urilor de sesiune
+#   RESEND_API_KEY   — cheie API Resend pentru trimitere email
