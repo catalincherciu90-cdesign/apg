@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Env, Variables } from './types';
 import { loadUser } from './lib/auth';
+import { getSetari, navVisibility } from './lib/setari';
 import { page, SITE_URL } from './views/layout';
 import publicRoutes from './routes/public';
 import authRoutes from './routes/auth';
@@ -12,6 +13,16 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // Incarca utilizatorul din cookie pentru toate rutele
 app.use('*', loadUser);
+
+// Vizibilitatea paginilor (pentru ascunderea linkurilor din meniu)
+app.use('*', async (c, next) => {
+  try {
+    c.set('pagini', navVisibility(await getSetari(c.env)));
+  } catch {
+    c.set('pagini', {});
+  }
+  await next();
+});
 
 // SEO: robots.txt + sitemap.xml
 app.get('/robots.txt', (c) =>
@@ -49,7 +60,7 @@ app.notFound((c) => {
     <p style="color:var(--grey);margin-bottom:1.5rem;">Pagina căutată nu există.</p>
     <a href="/" class="btn btn-primary">Înapoi acasă</a>
   </div>`;
-  return c.html(page({ title: 'Pagină negăsită — APG Garage', user: c.get('user'), nav: 'public', robots: 'noindex, nofollow', body }), 404);
+  return c.html(page({ title: 'Pagină negăsită — APG Garage', user: c.get('user'), nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', body }), 404);
 });
 
 export default {

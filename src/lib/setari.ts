@@ -52,6 +52,17 @@ export function paginaActiva(s: Record<string, string>, key: string): boolean {
   return (s[key] ?? '1') === '1';
 }
 
+// Vizibilitatea linkurilor din meniul public (pentru ascundere când o pagină e dezactivată)
+export function navVisibility(s: Record<string, string>): Record<string, boolean> {
+  return {
+    despre: paginaActiva(s, 'pagina_despre'),
+    preturi: paginaActiva(s, 'pagina_preturi'),
+    contact: paginaActiva(s, 'pagina_contact'),
+    tractari: paginaActiva(s, 'tractari_activ'),
+    dezmembrari: paginaActiva(s, 'dezmembrari_activ'),
+  };
+}
+
 export async function getSetari(env: Env): Promise<Record<string, string>> {
   const { results } = await env.DB.prepare('SELECT cheie, valoare FROM setari').all<{ cheie: string; valoare: string }>();
   const map: Record<string, string> = { ...SETARI_DEFAULT };
