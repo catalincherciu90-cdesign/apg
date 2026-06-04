@@ -21,7 +21,7 @@ const INDEX_STYLE = `<style>
     .btn-confirma { border-color: #1e8449; color: #1e8449; } .btn-confirma:hover { background: #1e8449; color: #fff; }
     .btn-inlucru { border-color: #1a6a9a; color: #1a6a9a; } .btn-inlucru:hover { background: #1a6a9a; color: #fff; }
     .btn-final { border-color: var(--grey); color: var(--grey); } .btn-final:hover { background: var(--grey); color: #000; }
-    .btn-respinge { border-color: var(--red); color: var(--red); } .btn-respinge:hover { background: var(--red); color: #fff; }
+    .btn-respinge { border-color: var(--danger); color: var(--danger); } .btn-respinge:hover { background: var(--danger); color: #fff; }
     .tabel-desktop { display: block; } .carduri-mobile { display: none; }
     .admin-card { background: var(--dark2); border: 1px solid var(--border); border-left: 4px solid var(--border); padding: 1.2rem; margin-bottom: 1rem; }
     .admin-card.status-asteptare { border-left-color: #f0a500; } .admin-card.status-confirmat { border-left-color: #2ecc71; } .admin-card.status-respins { border-left-color: var(--red); } .admin-card.status-in_lucru { border-left-color: #3498db; } .admin-card.status-finalizat { border-left-color: var(--grey); }

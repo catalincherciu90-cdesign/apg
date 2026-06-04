@@ -14,7 +14,7 @@ const HOME_STYLE = `<style>
     .hero { min-height: calc(100vh - var(--nav-height)); display: flex; align-items: center; padding: 3rem 1.5rem; position: relative; overflow: hidden; }
     .hero::before { content: ''; position: absolute; inset: 0; background: ${GRID_BG}; pointer-events: none; }
     .hero-content { max-width: 700px; position: relative; z-index: 1; }
-    .hero-tag { display:inline-block; background:var(--red); color:var(--white); font-size:0.7rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; padding:0.3rem 0.8rem; margin-bottom:1.2rem; }
+    .hero-tag { display:inline-block; background:var(--red); color:var(--black); font-size:0.7rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; padding:0.3rem 0.8rem; margin-bottom:1.2rem; }
     .hero-title { font-family:'Barlow Condensed',sans-serif; font-size:clamp(3.5rem,12vw,6rem); font-weight:800; line-height:0.95; text-transform:uppercase; letter-spacing:2px; margin-bottom:1.2rem; }
     .hero-title span { color:var(--red); }
     .hero-desc { color:var(--grey-light); font-size:1rem; line-height:1.6; margin-bottom:2rem; max-width:500px; }
@@ -96,7 +96,7 @@ const DESPRE_STYLE = `<style>
     .number-box .lbl { font-size:0.72rem; color:var(--grey); letter-spacing:1.2px; text-transform:uppercase; font-weight:600; }
     .team-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; margin-bottom:3rem; }
     .team-card { background:var(--dark2); border:1px solid var(--border); border-top:3px solid var(--red); padding:1.5rem; }
-    .team-card .initials { width:48px; height:48px; background:var(--red); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:1.2rem; font-weight:800; margin-bottom:0.8rem; }
+    .team-card .initials { width:48px; height:48px; background:var(--red); color:var(--black); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:1.2rem; font-weight:800; margin-bottom:0.8rem; }
     .team-card h3 { font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.2rem; }
     .team-card .rol { font-size:0.75rem; color:var(--red); letter-spacing:1.5px; text-transform:uppercase; font-weight:600; margin-bottom:0.6rem; }
     .team-card p { color:var(--grey); font-size:0.88rem; line-height:1.6; }
@@ -172,10 +172,10 @@ const PRETURI_STYLE = `<style>
     .price-item .serviciu { color: var(--white); flex: 1; }
     .price-item .serviciu .nota { display:block; font-size:0.78rem; color:var(--grey); margin-top:0.1rem; }
     .price-item .pret { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; color: var(--red); white-space: nowrap; text-align: right; }
-    .cta-banner { background: var(--red); padding: 3rem 1.5rem; text-align: center; margin-top: 1rem; }
+    .cta-banner { background: var(--dark2); border-top: 3px solid var(--red); padding: 3rem 1.5rem; text-align: center; margin-top: 1rem; }
     .cta-banner h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; }
     .cta-banner p { margin-bottom: 1.5rem; opacity: 0.85; font-size: 0.95rem; }
-    .btn-white { background: var(--white); color: var(--red); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 0.8rem 2rem; text-decoration: none; display: inline-block; }
+    .btn-white { background: var(--white); color: var(--black); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 0.8rem 2rem; text-decoration: none; display: inline-block; }
     @media (max-width: 500px) { .price-item { flex-direction: column; align-items: flex-start; gap: 0.3rem; } .price-item .pret { text-align: left; } }
 </style>`;
 
@@ -341,7 +341,7 @@ const TRACTARI_STYLE = `<style>
     .success-box .ico { font-size: 3rem; margin-bottom: 1rem; }
     .success-box h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; }
     .success-box p { color: var(--grey); margin-bottom: 1.5rem; }
-    .urgenta-bar { background: var(--red); padding: 0.8rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .urgenta-bar { background: var(--dark2); border-bottom: 2px solid var(--red); padding: 0.8rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
     .urgenta-bar p { font-size: 0.9rem; font-weight: 600; }
     .urgenta-bar a { color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; background: rgba(0,0,0,0.3); padding: 0.4rem 1rem; white-space: nowrap; }
 </style>`;
@@ -452,10 +452,10 @@ const DEZM_STYLE = `<style>
     .dezm-card .an { color: var(--red); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.8rem; }
     .dezm-card .motorizare { color: var(--grey); font-size: 0.85rem; margin-bottom: 0.8rem; }
     .dezm-card .descriere { color: var(--grey-light); font-size: 0.85rem; line-height: 1.6; }
-    .selected-badge { position: absolute; top: 0.8rem; right: 0.8rem; background: var(--red); color: var(--white); font-size: 0.68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 0.2rem 0.6rem; }
+    .selected-badge { position: absolute; top: 0.8rem; right: 0.8rem; background: var(--red); color: var(--black); font-size: 0.68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 0.2rem 0.6rem; }
     .btn-cerere { display: block; width: 100%; margin-top: 1rem; padding: 0.5rem; background: none; border: 1px solid var(--border); color: var(--grey); font-family: 'Barlow Condensed', sans-serif; font-size: 0.88rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; text-align: center; }
     .btn-cerere:hover, .dezm-card.selected .btn-cerere { border-color: var(--red); color: var(--red); }
-    .dezm-card.selected .btn-cerere { background: var(--red); color: var(--white); }
+    .dezm-card.selected .btn-cerere { background: var(--red); color: var(--black); }
     .cerere-section { background: var(--dark2); border: 1px solid var(--border); border-top: 4px solid var(--red); padding: 2rem; margin-bottom: 2rem; display: none; }
     .cerere-section.visible { display: block; }
     .cerere-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem; }

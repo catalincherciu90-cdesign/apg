@@ -1,15 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap');
 
 :root {
+    /* Temă grafit/argintiu derivată din logo (monocrom, fără brand-red) */
     --black:      #0a0a0a;
-    --dark:       #111111;
-    --dark2:      #1a1a1a;
-    --red:        #c0392b;
-    --red-dark:   #922b21;
-    --grey:       #888888;
-    --grey-light: #cccccc;
-    --white:      #f5f5f5;
-    --border:     #2a2a2a;
+    --dark:       #101113;
+    --dark2:      #17181a;
+    --red:        #c4c4c7;  /* accent = argintiu (highlight logo) */
+    --red-dark:   #8e8e91;  /* accent hover = grafit deschis */
+    --grey:       #8a8a8d;
+    --grey-light: #c9c9cc;
+    --white:      #f2f2f3;
+    --border:     #2c2d2f;
+    --danger:     #c0392b;  /* roșu funcțional: erori / acțiuni distructive */
+    --danger-dark:#922b21;
     --nav-height: 64px;
 }
 
@@ -134,7 +137,7 @@ nav {
 .mobile-menu a.btn-mobile {
     margin-top: 1.5rem;
     background: var(--red);
-    color: var(--white);
+    color: var(--black);
     text-align: center;
     padding: 1rem;
     border: none;
@@ -158,12 +161,12 @@ nav {
     border: none;
     transition: all 0.2s;
 }
-.btn-primary { background: var(--red); color: var(--white); }
-.btn-primary:hover { background: var(--red-dark); }
+.btn-primary { background: var(--red); color: var(--black); }
+.btn-primary:hover { background: var(--white); }
 .btn-outline { background: transparent; color: var(--white); border: 2px solid var(--grey); }
 .btn-outline:hover { border-color: var(--red); color: var(--red); }
-.btn-danger { background: transparent; color: var(--red); border: 2px solid var(--red); }
-.btn-danger:hover { background: var(--red); color: var(--white); }
+.btn-danger { background: transparent; color: var(--danger); border: 2px solid var(--danger); }
+.btn-danger:hover { background: var(--danger); color: var(--white); }
 .btn-success { background: #1e8449; color: var(--white); }
 .btn-success:hover { background: #145a32; }
 
@@ -228,7 +231,7 @@ nav {
     font-size: 0.9rem;
     border-left: 4px solid;
 }
-.alert-error   { background: #2c0b0b; border-color: var(--red); color: #f5b7b1; }
+.alert-error   { background: #2c0b0b; border-color: var(--danger); color: #f5b7b1; }
 .alert-success { background: #0b2c13; border-color: #1e8449;   color: #a9dfbf; }
 .alert-info    { background: #0b1e2c; border-color: #1a6a9a;   color: #85c1e9; }
 
@@ -309,7 +312,7 @@ table tr:hover td { background: rgba(255,255,255,0.02); }
 }
 .badge-asteptare { background: #4a3500; color: #f0a500; }
 .badge-confirmat { background: #0b2c13; color: #2ecc71; }
-.badge-respins   { background: #2c0b0b; color: var(--red); }
+.badge-respins   { background: #2c0b0b; color: #e08a7e; }
 .badge-in_lucru  { background: #0b1e2c; color: #3498db; }
 .badge-finalizat { background: #1a1a1a; color: var(--grey); }
 
