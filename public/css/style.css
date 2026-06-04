@@ -72,6 +72,7 @@ nav {
     transition: color 0.2s;
 }
 .nav-links a:hover { color: var(--red); }
+.nav-links a.btn-primary, .nav-links a.btn-primary:hover { color: var(--black); }
 
 /* Hamburger buton */
 .hamburger {
