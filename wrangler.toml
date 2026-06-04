@@ -12,7 +12,7 @@ assets = { directory = "./public", binding = "ASSETS" }
 [[d1_databases]]
 binding = "DB"
 database_name = "apg-garage"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "8fbb0133-344c-4a95-b11c-553a3cc94bd0"
 migrations_dir = "migrations"
 
 # Notificari revizie — zilnic la 09:00 UTC (ca vechiul cron 0 9 * * *)
