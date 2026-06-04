@@ -1,7 +1,12 @@
 import { html, raw } from 'hono/html';
 import type { SessionUser } from '../types';
 import { isSuperAdmin } from '../lib/permisiuni';
-import { anCurent } from '../lib/format';
+import { anCurent, esc } from '../lib/format';
+
+// Domeniul canonic folosit pentru SEO (canonical, Open Graph, sitemap).
+// La trecerea pe domeniul propriu, schimbă-l aici și în wrangler.toml (BASE_URL).
+export const SITE_URL = 'https://apg.catalincherciu90.workers.dev';
+const DEFAULT_DESC = 'APG Garage — service auto în București: revizii, reparații mecanice, diagnoză, tractări și piese din dezmembrări. Programează-te online rapid.';
 
 const HEAD_META = `
     <meta charset="UTF-8">
@@ -24,17 +29,40 @@ export interface PageOpts {
   nav?: 'public' | 'admin' | 'none';
   currentPath?: string;
   bodyEnd?: string; // script-uri la finalul body, HTML brut
+  description?: string; // meta description (SEO)
+  path?: string; // calea curentă pentru canonical (ex: '/preturi')
+  robots?: string; // ex: 'noindex, nofollow' pentru paginile private
+  ogImage?: string; // cale imagine social (implicit /hero.jpg)
 }
 
 export function page(opts: PageOpts): string {
   const nav = opts.nav ?? 'public';
   const navHtml = nav === 'admin' ? navAdmin(opts.user, opts.currentPath ?? '') : nav === 'public' ? navPublic(opts.user) : '';
   const footer = nav === 'admin' ? '' : `<footer>© ${anCurent()} APG Garage. Toate drepturile rezervate.</footer>`;
+  const desc = opts.description ?? DEFAULT_DESC;
+  const canonical = SITE_URL + (opts.path ?? '');
+  const ogImg = SITE_URL + (opts.ogImage ?? '/hero.jpg');
+  const robots = opts.robots ?? (nav === 'admin' ? 'noindex, nofollow' : 'index, follow');
+  const seo = `
+    <meta name="description" content="${esc(desc)}">
+    <meta name="robots" content="${robots}">
+    <link rel="canonical" href="${esc(canonical)}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="APG Garage">
+    <meta property="og:locale" content="ro_RO">
+    <meta property="og:title" content="${esc(opts.title)}">
+    <meta property="og:description" content="${esc(desc)}">
+    <meta property="og:url" content="${esc(canonical)}">
+    <meta property="og:image" content="${esc(ogImg)}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${esc(opts.title)}">
+    <meta name="twitter:description" content="${esc(desc)}">
+    <meta name="twitter:image" content="${esc(ogImg)}">`;
   return `<!DOCTYPE html>
 <html lang="ro">
 <head>
 ${HEAD_META}
-    <title>${opts.title}</title>
+    <title>${opts.title}</title>${seo}
 ${opts.headExtra ?? ''}
 </head>
 <body>

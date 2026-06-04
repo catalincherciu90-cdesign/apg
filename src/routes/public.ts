@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { Env, Variables } from '../types';
-import { page } from '../views/layout';
+import { page, SITE_URL } from '../views/layout';
 import { esc, nl2br, numberFormat } from '../lib/format';
 import { getSetari } from '../lib/setari';
 import { trimiteEmail, emailTemplate } from '../lib/mailer';
@@ -96,7 +96,21 @@ app.get('/', async (c) => {
     <p style="color:var(--grey);margin-bottom:1.5rem;">Sâmbătă și duminică: închis</p>
     <a href="/contact" class="btn btn-outline">Contactează-ne</a>
   </section>`;
-  return c.html(page({ title: 'APG Garage — Service Auto', user, nav: 'public', headExtra: HOME_STYLE, body }));
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': 'AutoRepair',
+    name: 'APG Garage',
+    image: SITE_URL + '/hero.jpg',
+    logo: SITE_URL + '/logo.png',
+    url: SITE_URL,
+    telephone: s.contact_telefon,
+    email: s.contact_email,
+    address: { '@type': 'PostalAddress', streetAddress: s.contact_adresa, addressLocality: 'București', addressCountry: 'RO' },
+    openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '17:00' }],
+    priceRange: '$$',
+  };
+  const jsonLd = `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
+  return c.html(page({ title: 'APG Garage — Service Auto București', user, nav: 'public', path: '/', description: 'Service auto în București: revizii, reparații mecanice, diagnoză, frâne și suspensie. Programează-te online la APG Garage.', headExtra: HOME_STYLE, body, bodyEnd: jsonLd }));
 });
 
 /* ============================ DESPRE ============================ */
@@ -173,7 +187,7 @@ app.get('/despre', async (c) => {
         <a href="/register" class="btn btn-primary">Programează-te acum</a>
     </div>
   </div>`;
-  return c.html(page({ title: 'Despre noi — APG Garage', user, nav: 'public', headExtra: DESPRE_STYLE, body }));
+  return c.html(page({ title: 'Despre noi — APG Garage', user, nav: 'public', path: '/despre', description: 'Despre APG Garage — echipă cu experiență, lucrări cu garanție și prețuri transparente pentru service auto în București.', headExtra: DESPRE_STYLE, body }));
 });
 
 /* ============================ PRETURI ============================ */
@@ -233,7 +247,7 @@ app.get('/preturi', async (c) => {
     <p>Ai o problemă cu mașina sau vrei o revizie? Fă o programare online acum.</p>
     <a href="/register" class="btn-white">Programează-te</a>
   </div>`;
-  return c.html(page({ title: 'Prețuri — APG Garage', user, nav: 'public', headExtra: PRETURI_STYLE, body }));
+  return c.html(page({ title: 'Prețuri — APG Garage', user, nav: 'public', path: '/preturi', description: 'Prețuri orientative APG Garage pentru revizii, reparații, frâne și suspensie. Vezi tarifele și programează-te online.', headExtra: PRETURI_STYLE, body }));
 });
 
 /* ============================ CONTACT ============================ */
@@ -307,7 +321,7 @@ function contactBody(s: Record<string, string>, success: boolean, error: string,
 app.get('/contact', async (c) => {
   const user = c.get('user');
   const s = await getSetari(c.env);
-  return c.html(page({ title: 'Contact — APG Garage', user, nav: 'public', headExtra: CONTACT_STYLE, body: contactBody(s, false, '', {}) }));
+  return c.html(page({ title: 'Contact — APG Garage', user, nav: 'public', path: '/contact', description: 'Contact APG Garage — adresă, telefon, program și formular. Sună-ne pentru o programare la service.', headExtra: CONTACT_STYLE, body: contactBody(s, false, '', {}) }));
 });
 
 app.post('/contact', async (c) => {
@@ -336,7 +350,7 @@ app.post('/contact', async (c) => {
     success = true;
   }
   const vals: Record<string, string> = success ? {} : { nume, email, telefon, mesaj };
-  return c.html(page({ title: 'Contact — APG Garage', user, nav: 'public', headExtra: CONTACT_STYLE, body: contactBody(s, success, error, vals) }));
+  return c.html(page({ title: 'Contact — APG Garage', user, nav: 'public', path: '/contact', description: 'Contact APG Garage — adresă, telefon, program și formular. Sună-ne pentru o programare la service.', headExtra: CONTACT_STYLE, body: contactBody(s, success, error, vals) }));
 });
 
 /* ============================ TRACTARI ============================ */
@@ -419,14 +433,14 @@ function tractariBody(user: any, success: boolean, error: string, v: Record<stri
 app.get('/tractari', async (c) => {
   const user = c.get('user');
   const s = await getSetari(c.env);
-  if (s.tractari_activ !== '1') return c.html(page({ title: 'Tractări auto — APG Garage', user, nav: 'public', headExtra: TRACTARI_STYLE, body: tractariInactiv(s) }));
-  return c.html(page({ title: 'Tractări auto — APG Garage', user, nav: 'public', headExtra: TRACTARI_STYLE, body: tractariBody(user, false, '', {}) }));
+  if (s.tractari_activ !== '1') return c.html(page({ title: 'Tractări auto — APG Garage', user, nav: 'public', path: '/tractari', description: 'Tractări auto București și Ilfov — cere o tractare online la APG Garage. Te contactăm rapid.', headExtra: TRACTARI_STYLE, body: tractariInactiv(s) }));
+  return c.html(page({ title: 'Tractări auto — APG Garage', user, nav: 'public', path: '/tractari', description: 'Tractări auto București și Ilfov — cere o tractare online la APG Garage. Te contactăm rapid.', headExtra: TRACTARI_STYLE, body: tractariBody(user, false, '', {}) }));
 });
 
 app.post('/tractari', async (c) => {
   const user = c.get('user');
   const s = await getSetari(c.env);
-  if (s.tractari_activ !== '1') return c.html(page({ title: 'Tractări auto — APG Garage', user, nav: 'public', headExtra: TRACTARI_STYLE, body: tractariInactiv(s) }));
+  if (s.tractari_activ !== '1') return c.html(page({ title: 'Tractări auto — APG Garage', user, nav: 'public', path: '/tractari', description: 'Tractări auto București și Ilfov — cere o tractare online la APG Garage. Te contactăm rapid.', headExtra: TRACTARI_STYLE, body: tractariInactiv(s) }));
   const form = await c.req.formData();
   const nume = String(form.get('nume') ?? '').trim();
   const telefon = String(form.get('telefon') ?? '').trim();
@@ -454,7 +468,7 @@ app.post('/tractari', async (c) => {
     success = true;
   }
   const vals: Record<string, string> = success ? {} : { nume, telefon, locatie, nr_inmatriculare: nr, producator, model, descriere_problema: descriere };
-  return c.html(page({ title: 'Tractări auto — APG Garage', user, nav: 'public', headExtra: TRACTARI_STYLE, body: tractariBody(user, success, error, vals) }));
+  return c.html(page({ title: 'Tractări auto — APG Garage', user, nav: 'public', path: '/tractari', description: 'Tractări auto București și Ilfov — cere o tractare online la APG Garage. Te contactăm rapid.', headExtra: TRACTARI_STYLE, body: tractariBody(user, success, error, vals) }));
 });
 
 /* ============================ DEZMEMBRARI ============================ */
@@ -562,16 +576,16 @@ function dezmBody(user: any, masini: any[], selectedId: number, success: boolean
 app.get('/dezmembrari', async (c) => {
   const user = c.get('user');
   const s = await getSetari(c.env);
-  if (s.dezmembrari_activ !== '1') return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', headExtra: DEZM_STYLE, body: dezmInactiv(s) }));
+  if (s.dezmembrari_activ !== '1') return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', path: '/dezmembrari', description: 'Piese auto din dezmembrări la APG Garage. Vezi mașinile disponibile și cere piesa de care ai nevoie.', headExtra: DEZM_STYLE, body: dezmInactiv(s) }));
   const { results } = await c.env.DB.prepare('SELECT * FROM dezmembrari WHERE activ = 1 ORDER BY producator, model').all<any>();
   const selectedId = parseInt(c.req.query('masina') ?? '0', 10);
-  return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', headExtra: DEZM_STYLE, body: dezmBody(user, results ?? [], selectedId, false, '', {}), bodyEnd: DEZM_SCRIPT }));
+  return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', path: '/dezmembrari', description: 'Piese auto din dezmembrări la APG Garage. Vezi mașinile disponibile și cere piesa de care ai nevoie.', headExtra: DEZM_STYLE, body: dezmBody(user, results ?? [], selectedId, false, '', {}), bodyEnd: DEZM_SCRIPT }));
 });
 
 app.post('/dezmembrari', async (c) => {
   const user = c.get('user');
   const s = await getSetari(c.env);
-  if (s.dezmembrari_activ !== '1') return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', headExtra: DEZM_STYLE, body: dezmInactiv(s) }));
+  if (s.dezmembrari_activ !== '1') return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', path: '/dezmembrari', description: 'Piese auto din dezmembrări la APG Garage. Vezi mașinile disponibile și cere piesa de care ai nevoie.', headExtra: DEZM_STYLE, body: dezmInactiv(s) }));
   const { results: masini } = await c.env.DB.prepare('SELECT * FROM dezmembrari WHERE activ = 1 ORDER BY producator, model').all<any>();
   const form = await c.req.formData();
   const dezmId = parseInt(String(form.get('dezmembrare_id') ?? '0'), 10);
@@ -603,7 +617,7 @@ app.post('/dezmembrari', async (c) => {
     }
   }
   const vals: Record<string, string> = success ? {} : { nume, telefon, piesa_dorita: piesa };
-  return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', headExtra: DEZM_STYLE, body: dezmBody(user, masini ?? [], selectedId, success, error, vals), bodyEnd: DEZM_SCRIPT }));
+  return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', path: '/dezmembrari', description: 'Piese auto din dezmembrări la APG Garage. Vezi mașinile disponibile și cere piesa de care ai nevoie.', headExtra: DEZM_STYLE, body: dezmBody(user, masini ?? [], selectedId, success, error, vals), bodyEnd: DEZM_SCRIPT }));
 });
 
 export default app;
