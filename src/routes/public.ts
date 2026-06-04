@@ -29,7 +29,7 @@ const HOME_STYLE = `<style>
     .service-card p { color:var(--grey); font-size:0.88rem; line-height:1.6; }
     .why-section { padding:4rem 1.5rem; }
     .why-section .section-label,.why-section .section-title { text-align:center; }
-    .why-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; max-width:1100px; margin:0 auto; }
+    .why-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; max-width:900px; margin:0 auto; }
     .why-item { text-align:center; padding:1.2rem 0.8rem; }
     .why-item .num { font-family:'Barlow Condensed',sans-serif; font-size:2.8rem; font-weight:800; color:var(--red); line-height:1; margin-bottom:0.4rem; }
     .why-item h3 { font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.4rem; }
@@ -82,7 +82,6 @@ app.get('/', async (c) => {
         <div class="why-item"><div class="num">${esc(s.home_ani_experienta)}</div><h3>Ani experiență</h3><p>Pe zeci de mărci și modele.</p></div>
         <div class="why-item"><div class="num">${esc(s.home_clienti)}</div><h3>Clienți mulțumiți</h3><p>Care revin și recomandă.</p></div>
         <div class="why-item"><div class="num">100%</div><h3>Transparență</h3><p>Știi exact ce și cât costă.</p></div>
-        <div class="why-item"><div class="num">${esc(s.home_timp_revizie)}</div><h3>Timp mediu revizie</h3><p>Lucrăm eficient.</p></div>
     </div>
   </section>
   <section class="cta-photo"><div class="cta-inner"><div class="cta-box">

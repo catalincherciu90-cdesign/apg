@@ -329,7 +329,7 @@ async function renderSetari(c: AppContext, success: string) {
 }
 
 /* ============================ CONTINUT SITE ============================ */
-const CHEI_HOME = ['home_titlu', 'home_subtitlu', 'home_descriere', 'home_tag', 'home_despre_titlu', 'home_ani_experienta', 'home_clienti', 'home_timp_revizie'];
+const CHEI_HOME = ['home_titlu', 'home_subtitlu', 'home_descriere', 'home_tag', 'home_despre_titlu', 'home_ani_experienta', 'home_clienti'];
 const CHEI_DESPRE = ['despre_titlu', 'despre_descriere', 'despre_text_1', 'despre_text_2', 'despre_text_3'];
 
 app.post('/continut', async (c) => {
@@ -375,10 +375,9 @@ async function renderContinut(c: AppContext, tab: string, success: string) {
         </div>
         <div class="section-card"><h3>Secțiunea statistici</h3>
             <div class="form-group"><label>Titlu secțiune</label><input type="text" name="home_despre_titlu" value="${esc(s.home_despre_titlu)}" placeholder="ex: De ce APG Garage"></div>
-            <div class="fg3">
+            <div class="fg2">
                 <div class="form-group"><label>Ani experiență</label><input type="text" name="home_ani_experienta" value="${esc(s.home_ani_experienta)}" placeholder="ex: 10+"><div class="hint">Numărul afișat mare</div></div>
                 <div class="form-group"><label>Clienți mulțumiți</label><input type="text" name="home_clienti" value="${esc(s.home_clienti)}" placeholder="ex: 500+"></div>
-                <div class="form-group"><label>Timp mediu revizie</label><input type="text" name="home_timp_revizie" value="${esc(s.home_timp_revizie)}" placeholder="ex: 2h"></div>
             </div>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Salvează pagina principală</button>
