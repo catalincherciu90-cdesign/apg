@@ -58,30 +58,33 @@ npm run deploy
 > Cont admin implicit: `admin@apg-garage.ro` / `password` — **schimbă parola** imediat
 > din panoul de admin (Angajați → Resetează parola).
 
-## Deploy automat (GitHub Actions)
+## Deploy (Cloudflare Workers Builds)
 
-Workflow-ul `.github/workflows/deploy.yml` face deploy la fiecare push pe `main`
-(sau pornit manual din tab-ul **Actions**).
+Repoul este conectat la Cloudflare prin **Workers Builds**, care rulează
+`wrangler deploy` automat la fiecare push. Build-ul va eșua până când sunt
+făcuți pașii de pregătire unică de mai jos (binding D1 + secrete).
 
 **Pregătire unică:**
 
-1. Creează baza D1 și pune `database_id` în `wrangler.toml`, apoi commit:
+1. **Creează baza D1** și pune `database_id` în `wrangler.toml`, apoi commit:
    ```bash
    npx wrangler d1 create apg-garage
+   # copiază "database_id" afișat în [[d1_databases]] din wrangler.toml
    ```
-2. În GitHub: **Settings → Secrets and variables → Actions** adaugă:
-   | Secret | Necesar | Descriere |
-   |---|---|---|
-   | `CLOUDFLARE_API_TOKEN` | da | token cu permisiune *Edit Workers* (+ D1) |
-   | `CLOUDFLARE_ACCOUNT_ID` | recomandat | ID-ul contului Cloudflare |
-   | `SESSION_SECRET` | da | șir aleator lung pentru semnarea sesiunilor |
-   | `RESEND_API_KEY` | da | cheia API Resend |
+2. **Aplică schema** (o singură dată; ulterior migrațiile noi se aplică manual
+   sau printr-un pas de build):
+   ```bash
+   npm run db:migrate   # wrangler d1 migrations apply apg-garage --remote
+   ```
+3. **Setează secretele** în dashboard-ul Cloudflare → Worker-ul → *Settings →
+   Variables and Secrets*:
+   - `SESSION_SECRET` — șir aleator lung pentru semnarea sesiunilor
+   - `RESEND_API_KEY` — cheia API Resend
 
-La fiecare rulare, workflow-ul: instalează deps → `typecheck` → aplică migrațiile
-D1 (`--remote`) → sincronizează secretele pe Worker → `wrangler deploy`.
+După acești pași, fiecare push declanșează un deploy reușit prin Workers Builds.
 
-> Pentru `workflow_dispatch` și deploy pe push, fișierul trebuie să existe pe
-> branch-ul `main` (merge branch-ul de lucru în `main`).
+> Build-ul Cloudflare rulează doar `wrangler deploy`; nu aplică migrații D1.
+> Rulează `npm run db:migrate` local când adaugi migrații noi.
 
 ## Variabile (wrangler.toml `[vars]`)
 
