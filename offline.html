@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline — APG Garage</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: #0a0a0a;
+            color: #f5f5f5;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        .wrap { max-width: 400px; }
+        .icon { font-size: 4rem; margin-bottom: 1.5rem; }
+        h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+        h1 span { color: #c0392b; }
+        p { color: #888; line-height: 1.6; margin-bottom: 1.5rem; }
+        .btn {
+            display: inline-block;
+            background: #c0392b;
+            color: #fff;
+            padding: 0.8rem 2rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="icon">🔧</div>
+        <h1>APG <span>Garage</span></h1>
+        <p>Nu ești conectat la internet. Verifică conexiunea și încearcă din nou.</p>
+        <button class="btn" onclick="window.location.reload()">Încearcă din nou</button>
+    </div>
+</body>
+</html>
