@@ -58,6 +58,31 @@ npm run deploy
 > Cont admin implicit: `admin@apg-garage.ro` / `password` — **schimbă parola** imediat
 > din panoul de admin (Angajați → Resetează parola).
 
+## Deploy automat (GitHub Actions)
+
+Workflow-ul `.github/workflows/deploy.yml` face deploy la fiecare push pe `main`
+(sau pornit manual din tab-ul **Actions**).
+
+**Pregătire unică:**
+
+1. Creează baza D1 și pune `database_id` în `wrangler.toml`, apoi commit:
+   ```bash
+   npx wrangler d1 create apg-garage
+   ```
+2. În GitHub: **Settings → Secrets and variables → Actions** adaugă:
+   | Secret | Necesar | Descriere |
+   |---|---|---|
+   | `CLOUDFLARE_API_TOKEN` | da | token cu permisiune *Edit Workers* (+ D1) |
+   | `CLOUDFLARE_ACCOUNT_ID` | recomandat | ID-ul contului Cloudflare |
+   | `SESSION_SECRET` | da | șir aleator lung pentru semnarea sesiunilor |
+   | `RESEND_API_KEY` | da | cheia API Resend |
+
+La fiecare rulare, workflow-ul: instalează deps → `typecheck` → aplică migrațiile
+D1 (`--remote`) → sincronizează secretele pe Worker → `wrangler deploy`.
+
+> Pentru `workflow_dispatch` și deploy pe push, fișierul trebuie să existe pe
+> branch-ul `main` (merge branch-ul de lucru în `main`).
+
 ## Variabile (wrangler.toml `[vars]`)
 
 `SITE_NAME`, `BASE_URL`, `MAIL_FROM`, `MAIL_ADMIN`. Pentru Resend, domeniul din
