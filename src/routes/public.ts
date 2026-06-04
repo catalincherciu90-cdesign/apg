@@ -13,7 +13,11 @@ const GRID_BG = `repeating-linear-gradient(90deg, transparent, transparent 60px,
 const HOME_STYLE = `<style>
     .hero { min-height: calc(100vh - var(--nav-height)); display: flex; align-items: center; padding: 3rem 1.5rem; position: relative; overflow: hidden; }
     .hero::before { content: ''; position: absolute; inset: 0; background: ${GRID_BG}; pointer-events: none; }
-    .hero-content { max-width: 700px; position: relative; z-index: 1; }
+    .hero-inner { max-width: 1100px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 2.5rem; position: relative; z-index: 1; }
+    .hero-content { flex: 1 1 520px; max-width: 640px; }
+    .hero-art { flex: 1 1 420px; display: flex; justify-content: center; }
+    .hero-art img { width: 100%; max-width: 560px; height: auto; filter: drop-shadow(0 12px 28px rgba(0,0,0,0.55)); }
+    @media (max-width: 860px) { .hero-inner { flex-direction: column; gap: 1.5rem; } .hero-art img { max-width: 420px; } }
     .hero-tag { display:inline-block; background:var(--red); color:var(--black); font-size:0.7rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; padding:0.3rem 0.8rem; margin-bottom:1.2rem; }
     .hero-title { font-family:'Barlow Condensed',sans-serif; font-size:clamp(3.5rem,12vw,6rem); font-weight:800; line-height:0.95; text-transform:uppercase; letter-spacing:2px; margin-bottom:1.2rem; }
     .hero-title span { color:var(--red); }
@@ -47,11 +51,14 @@ app.get('/', async (c) => {
     ? `<a href="/rezervare" class="btn btn-primary">Fă o programare</a><a href="/dashboard" class="btn btn-outline">Programările mele</a>`
     : `<a href="/register" class="btn btn-primary">Programează-te acum</a><a href="/preturi" class="btn btn-outline">Vezi prețuri</a>`;
 
-  const body = `<section class="hero"><div class="hero-content">
-    <div class="hero-tag">${esc(s.home_tag)}</div>
-    <h1 class="hero-title">${esc(s.home_titlu)}<br><span>${esc(s.home_subtitlu)}</span></h1>
-    <p class="hero-desc">${esc(s.home_descriere)}</p>
-    <div class="hero-btns">${heroBtns}</div>
+  const body = `<section class="hero"><div class="hero-inner">
+    <div class="hero-content">
+        <div class="hero-tag">${esc(s.home_tag)}</div>
+        <h1 class="hero-title">${esc(s.home_titlu)}<br><span>${esc(s.home_subtitlu)}</span></h1>
+        <p class="hero-desc">${esc(s.home_descriere)}</p>
+        <div class="hero-btns">${heroBtns}</div>
+    </div>
+    <div class="hero-art"><img src="/hero.svg" alt="Service auto — mașină pe elevator" width="560" height="385"></div>
   </div></section>
   <section class="services-section">
     <div class="section-label">Ce facem</div>
