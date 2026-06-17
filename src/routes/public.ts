@@ -175,15 +175,6 @@ app.get('/despre', async (c) => {
         </div></div>
     </div>
     <div style="margin-bottom:3rem;">
-        <div class="section-label">Oamenii din spate</div>
-        <div class="section-title">Echipa <span>noastră</span></div>
-        <div class="team-grid">
-            <div class="team-card"><div class="initials">AP</div><h3>Nume Prenume</h3><div class="rol">Mecanic șef</div><p>Peste 15 ani de experiență în diagnosticare și reparații mecanice complexe.</p></div>
-            <div class="team-card"><div class="initials">GH</div><h3>Nume Prenume</h3><div class="rol">Mecanic</div><p>Specializat în sisteme de frânare, suspensie și geometrie roți.</p></div>
-            <div class="team-card"><div class="initials">MV</div><h3>Nume Prenume</h3><div class="rol">Mecanic</div><p>Expert în motoare și sisteme de alimentare, benzină și diesel.</p></div>
-        </div>
-    </div>
-    <div style="margin-bottom:3rem;">
         <div class="section-label">Ce ne definește</div>
         <div class="section-title">Valorile <span>noastre</span></div>
         <div class="values-grid">
