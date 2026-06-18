@@ -22,6 +22,7 @@ export const NOTIF_EVENTS: NotifEvent[] = [
   { key: 'deviz_client', label: 'Deviz nou', catre: 'client', descriere: 'Notificare către client când service-ul emite un deviz.' },
   { key: 'reminder_programare', label: 'Reminder programare (cu o zi înainte)', catre: 'client', descriere: 'Reminder automat trimis clientului cu o zi înainte de programare.' },
   { key: 'reminder_revizie', label: 'Reminder revizie', catre: 'client', descriere: 'Reminder automat când se apropie un an de la ultima revizie.' },
+  { key: 'reminder_rampa', label: 'Reminder verificare rampă', catre: 'client', descriere: 'Reminder automat când se apropie scadența verificării de rampă (interval configurabil în Setări).' },
   { key: 'raspuns_piesa_client', label: 'Răspuns cerere piesă', catre: 'client', descriere: 'Răspunsul service-ului la o cerere de piesă din dezmembrări.' },
   { key: 'mesaj_contact_client', label: 'Confirmare mesaj contact', catre: 'client', descriere: 'Confirmare trimisă clientului că mesajul lui a fost primit.' },
 
