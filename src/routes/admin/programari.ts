@@ -56,6 +56,19 @@ app.post('/', async (c) => {
       await c.env.DB.prepare('UPDATE rezervari SET status = ?, motiv_respingere = ? WHERE id = ?').bind(map[act], motiv, id).run();
     } else {
       await c.env.DB.prepare('UPDATE rezervari SET status = ? WHERE id = ?').bind(map[act], id).run();
+      // La finalizarea unei revizii, actualizează automat data ultimei revizii a mașinii
+      // (resetează countdown-ul și reminderul). Doar dacă programarea e mai nouă.
+      if (act === 'finalizeaza') {
+        const rez = await c.env.DB.prepare('SELECT user_id, nr_inmatriculare, serviciu_tip, data FROM rezervari WHERE id = ?').bind(id).first<any>();
+        if (rez && rez.nr_inmatriculare && /reviz/i.test(String(rez.serviciu_tip ?? ''))) {
+          const dataRev = String(rez.data).slice(0, 10);
+          await c.env.DB.prepare(
+            `UPDATE masini SET data_ultima_revizie = ?, notificare_trimisa = 0
+             WHERE user_id = ? AND REPLACE(UPPER(nr_inmatriculare), ' ', '') = REPLACE(UPPER(?), ' ', '')
+               AND (data_ultima_revizie IS NULL OR data_ultima_revizie < ?)`,
+          ).bind(dataRev, rez.user_id, rez.nr_inmatriculare, dataRev).run();
+        }
+      }
     }
   }
   return c.redirect('/admin');
