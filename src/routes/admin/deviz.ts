@@ -4,6 +4,7 @@ import { page } from '../../views/layout';
 import { esc, numberFormat, dateRo, timeShort, serviciuLabel } from '../../lib/format';
 import { parseRanduri } from '../../lib/form';
 import { notificareDevizNou } from '../../lib/notificari';
+import { ensureDevizDecizie } from '../../lib/deviz';
 import { CATALOG_PIESE, CATALOG_MANOPERA } from '../../data/catalog';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -84,6 +85,7 @@ app.get('/deviz', async (c) => {
   if (!rezervareId) return c.redirect('/admin');
   const rezervare = await c.env.DB.prepare('SELECT r.*, u.nume as client_nume, u.email as client_email, u.telefon as client_telefon FROM rezervari r JOIN users u ON u.id = r.user_id WHERE r.id = ?').bind(rezervareId).first<any>();
   if (!rezervare) return c.redirect('/admin');
+  await ensureDevizDecizie(c.env);
   const deviz = await getOrCreateDeviz(c.env, rezervareId);
   const { results: randuri } = await c.env.DB.prepare('SELECT * FROM deviz_randuri WHERE deviz_id = ? ORDER BY tip, categorie, id').bind(deviz.id).all<any>();
   const totalGeneral = (randuri ?? []).reduce((s, r) => s + Number(r.total), 0);
@@ -122,6 +124,7 @@ app.get('/deviz', async (c) => {
     <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.3rem;flex-wrap:wrap;">
         <div class="page-title">Deviz <span>#${deviz.id}</span></div>
         <span class="status-badge-deviz status-${deviz.status}">${deviz.status === 'trimis' ? 'Trimis la client' : 'Draft'}</span>
+        ${deviz.decizie ? `<span class="status-badge-deviz" style="background:${deviz.decizie === 'aprobat' ? '#0b2c13' : '#2c0b0b'};color:${deviz.decizie === 'aprobat' ? '#2ecc71' : '#e74c3c'};">Client: ${deviz.decizie === 'aprobat' ? '✓ APROBAT' : '✕ RESPINS'}</span>` : ''}
     </div>
     <div class="page-subtitle"><a href="/admin" style="color:var(--red);text-decoration:none;">← Înapoi la programări</a></div>
     ${saved ? `<div class="alert alert-success">Devizul a fost salvat.</div>` : ''}

@@ -31,6 +31,7 @@ export const NOTIF_EVENTS: NotifEvent[] = [
   { key: 'mesaj_contact_admin', label: 'Mesaj din formularul de contact', catre: 'admin', descriere: 'Alertă către admin la primirea unui mesaj de contact.' },
   { key: 'tractare_admin', label: 'Cerere tractare', catre: 'admin', descriere: 'Alertă către admin la o cerere nouă de tractare.' },
   { key: 'piesa_admin', label: 'Cerere piesă dezmembrări', catre: 'admin', descriere: 'Alertă către admin la o cerere nouă de piesă.' },
+  { key: 'deviz_decizie_admin', label: 'Decizie client pe deviz', catre: 'admin', descriere: 'Alertă către admin când clientul aprobă sau respinge un deviz.' },
 ];
 
 export function notifActiv(s: Record<string, string>, key: string): boolean {
@@ -280,6 +281,28 @@ export async function notificareCererePiesa(
       <tr><td>Piesa dorită</td><td>${esc(piesa)}</td></tr>
     </table><a href="${env.BASE_URL}/admin/dezmembrari" class="btn">Vezi cererea în admin</a>`;
   await notifica(env, 'piesa_admin', admini, 'Cerere piesă dezmembrări — ' + nume, emailTemplate('Cerere piesă nouă', continut), s);
+}
+
+export async function notificareDevizDecizie(
+  env: Env,
+  client: string,
+  masina: string,
+  rezervareId: number,
+  decizie: 'aprobat' | 'respins',
+  total: number,
+) {
+  const s = await getSetari(env);
+  const admini = getAdminEmails(s, env);
+  const aprobat = decizie === 'aprobat';
+  const continut = `<p>Clientul a luat o decizie asupra devizului.</p>
+    <table class="info-table">
+      <tr><td>Client</td><td>${esc(client)}</td></tr>
+      <tr><td>Mașina</td><td>${esc(masina)}</td></tr>
+      <tr><td>Total deviz</td><td><strong>${numberFormat(total, 2)} lei</strong></td></tr>
+      <tr><td>Decizie</td><td><strong style="color:${aprobat ? '#2ecc71' : '#c0392b'};">${aprobat ? 'APROBAT' : 'RESPINS'}</strong></td></tr>
+    </table>
+    <a href="${env.BASE_URL}/admin/deviz?rezervare_id=${rezervareId}" class="btn">Vezi devizul în admin</a>`;
+  await notifica(env, 'deviz_decizie_admin', admini, `Deviz ${aprobat ? 'aprobat' : 'respins'} — ${client}`, emailTemplate(`Deviz ${aprobat ? 'aprobat' : 'respins'} de client`, continut), s);
 }
 
 export async function notificareRaspunsPiesa(
