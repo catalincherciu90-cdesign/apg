@@ -3,7 +3,7 @@ import type { Env, Variables, AppContext } from '../types';
 import { requireClient } from '../lib/auth';
 import { page } from '../views/layout';
 import { esc, numberFormat, dateRo, timeShort, nl2br, serviciuLabel, STATUS_LABEL, todayRo, diffDays } from '../lib/format';
-import { notificareProgramareNoua } from '../lib/mailer';
+import { notificareProgramareNoua } from '../lib/notificari';
 import { getSetari } from '../lib/setari';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();

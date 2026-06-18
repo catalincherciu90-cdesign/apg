@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import type { Env, Variables, AppContext } from '../../types';
 import { page } from '../../views/layout';
 import { esc, nl2br } from '../../lib/format';
-import { trimiteEmail, emailTemplate } from '../../lib/mailer';
+import { notificareRaspunsPiesa } from '../../lib/notificari';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 const jsAttr = (s: string) => esc(s).replace(/'/g, '&#039;');
@@ -174,15 +174,8 @@ app.post('/cereri-piese', async (c) => {
       await c.env.DB.prepare('UPDATE cereri_piese SET status=?, raspuns_admin=? WHERE id=?').bind(status, raspuns, id).run();
       const cerere = await c.env.DB.prepare(`SELECT cp.*, d.producator, d.model, d.an_fabricatie, u.email FROM cereri_piese cp LEFT JOIN dezmembrari d ON d.id = cp.dezmembrare_id LEFT JOIN users u ON u.id = cp.user_id WHERE cp.id = ?`).bind(id).first<any>();
       if (cerere && cerere.email) {
-        const statusText = status === 'disponibil' ? 'DISPONIBILĂ' : 'INDISPONIBILĂ';
-        const culoare = status === 'disponibil' ? '#2ecc71' : '#c0392b';
-        const continut = `<p>Ai primit un răspuns la cererea ta de piesă.</p><table class="info-table">
-            <tr><td>Mașina</td><td>${esc((cerere.producator ?? '') + ' ' + (cerere.model ?? '') + ' ' + (cerere.an_fabricatie ?? ''))}</td></tr>
-            <tr><td>Piesa cerută</td><td>${esc(cerere.piesa_dorita)}</td></tr>
-            <tr><td>Disponibilitate</td><td><strong style="color:${culoare};">${statusText}</strong></td></tr>
-          </table><p style="margin-top:1rem;"><strong>Mesaj de la service:</strong><br>${nl2br(raspuns)}</p>
-          <a href="${c.env.BASE_URL}/dezmembrari" class="btn">Vezi alte piese disponibile</a>`;
-        c.executionCtx.waitUntil(trimiteEmail(c.env, cerere.email, 'Răspuns cerere piesă — APG Garage', emailTemplate('Răspuns la cererea ta de piesă', continut)));
+        const masina = ((cerere.producator ?? '') + ' ' + (cerere.model ?? '') + ' ' + (cerere.an_fabricatie ?? '')).trim();
+        c.executionCtx.waitUntil(notificareRaspunsPiesa(c.env, cerere.email, masina, cerere.piesa_dorita, status === 'disponibil' ? 'disponibil' : 'indisponibil', nl2br(raspuns)));
       }
       success = 'Răspunsul a fost trimis clientului.';
     }

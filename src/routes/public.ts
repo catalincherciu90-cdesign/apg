@@ -3,7 +3,7 @@ import type { Env, Variables } from '../types';
 import { page, SITE_URL } from '../views/layout';
 import { esc, nl2br, numberFormat } from '../lib/format';
 import { getSetari, paginaActiva } from '../lib/setari';
-import { trimiteEmail, emailTemplate } from '../lib/mailer';
+import { notificareMesajContact, notificareCerereTractare, notificareCererePiesa } from '../lib/notificari';
 import { ensureMesaje } from '../lib/mesaje';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -350,13 +350,8 @@ app.post('/contact', async (c) => {
     // Salvează mesajul în rubrica „Mesaje" din admin
     await ensureMesaje(c.env);
     await c.env.DB.prepare('INSERT INTO mesaje (nume, email, telefon, mesaj) VALUES (?, ?, ?, ?)').bind(nume, email, telefon, mesaj).run();
-    // …și trimite și notificare pe email
-    const html = emailTemplate('Mesaj nou de pe site', `<table class="info-table">
-        <tr><td>Nume</td><td>${esc(nume)}</td></tr>
-        <tr><td>Email</td><td>${esc(email)}</td></tr>
-        <tr><td>Telefon</td><td>${esc(telefon || '—')}</td></tr>
-      </table><p>${nl2br(mesaj)}</p>`);
-    c.executionCtx.waitUntil(trimiteEmail(c.env, s.contact_email, 'Mesaj nou de pe site — ' + nume, html));
+    // …și trimite notificarea către admin (cu toggle + jurnal)
+    c.executionCtx.waitUntil(notificareMesajContact(c.env, nume, email, telefon, mesaj));
     success = true;
   }
   const vals: Record<string, string> = success ? {} : { nume, email, telefon, mesaj };
@@ -467,14 +462,7 @@ app.post('/tractari', async (c) => {
   } else {
     await c.env.DB.prepare('INSERT INTO tractari (user_id, nume, telefon, locatie, nr_inmatriculare, producator, model, descriere_problema) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
       .bind(user ? user.uid : null, nume, telefon, locatie, nr, producator, model, descriere).run();
-    const continut = `<p>O nouă cerere de tractare a fost înregistrată.</p><table class="info-table">
-        <tr><td>Nume</td><td>${esc(nume)}</td></tr>
-        <tr><td>Telefon</td><td>${esc(telefon)}</td></tr>
-        <tr><td>Locație</td><td>${esc(locatie)}</td></tr>
-        <tr><td>Mașina</td><td>${esc(nr + ' ' + producator + ' ' + model)}</td></tr>
-        <tr><td>Problemă</td><td>${esc(descriere || '—')}</td></tr>
-      </table><a href="${c.env.BASE_URL}/admin/tractari" class="btn">Vezi cererea în admin</a>`;
-    c.executionCtx.waitUntil(trimiteEmail(c.env, c.env.MAIL_ADMIN, 'Cerere tractare nouă — ' + nume, emailTemplate('Cerere tractare nouă', continut)));
+    c.executionCtx.waitUntil(notificareCerereTractare(c.env, nume, telefon, locatie, (nr + ' ' + producator + ' ' + model).trim(), descriere));
     success = true;
   }
   const vals: Record<string, string> = success ? {} : { nume, telefon, locatie, nr_inmatriculare: nr, producator, model, descriere_problema: descriere };
@@ -615,13 +603,7 @@ app.post('/dezmembrari', async (c) => {
     } else {
       await c.env.DB.prepare('INSERT INTO cereri_piese (user_id, dezmembrare_id, nume, telefon, piesa_dorita) VALUES (?, ?, ?, ?, ?)')
         .bind(user ? user.uid : null, dezmId, nume, telefon, piesa).run();
-      const continut = `<p>O nouă cerere de piesă din dezmembrări a fost înregistrată.</p><table class="info-table">
-          <tr><td>Client</td><td>${esc(nume)}</td></tr>
-          <tr><td>Telefon</td><td>${esc(telefon)}</td></tr>
-          <tr><td>Mașina dezmembrată</td><td>${esc(m.producator + ' ' + m.model + ' ' + (m.an_fabricatie ?? ''))}</td></tr>
-          <tr><td>Piesa dorită</td><td>${esc(piesa)}</td></tr>
-        </table><a href="${c.env.BASE_URL}/admin/dezmembrari" class="btn">Vezi cererea în admin</a>`;
-      c.executionCtx.waitUntil(trimiteEmail(c.env, c.env.MAIL_ADMIN, 'Cerere piesă dezmembrări — ' + nume, emailTemplate('Cerere piesă nouă', continut)));
+      c.executionCtx.waitUntil(notificareCererePiesa(c.env, nume, telefon, (m.producator + ' ' + m.model + ' ' + (m.an_fabricatie ?? '')).trim(), piesa));
       success = true;
       selectedId = 0;
     }
