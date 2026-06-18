@@ -19,6 +19,7 @@ app.use('/tractari', requireAccess('tractari'));
 app.use('/dezmembrari', requireAccess('dezmembrari'));
 app.use('/cereri-piese', requireAccess('dezmembrari'));
 app.use('/preturi', requireSuperAdmin);
+app.use('/clienti', requireSuperAdmin);
 app.use('/angajati', requireSuperAdmin);
 app.use('/setari', requireSuperAdmin);
 app.use('/contact', requireSuperAdmin);
