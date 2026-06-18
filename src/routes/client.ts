@@ -408,6 +408,17 @@ async function renderRezervare(c: AppContext, error: string, success: boolean, v
   const optServicii = (servicii && servicii.length)
     ? servicii.map((s) => `<option value="${esc(s.nume)}" ${sel('serviciu_tip', s.nume)}>${esc(s.nume)}</option>`).join('')
     : `<option value="revizie" ${sel('serviciu_tip', 'revizie')}>Revizie</option><option value="reparatie" ${sel('serviciu_tip', 'reparatie')}>Reparație mecanică</option><option value="verificare_rampa" ${sel('serviciu_tip', 'verificare_rampa')}>Verificare rampă</option>`;
+  // Mașinile salvate ale clientului — pentru completare automată
+  const { results: masiniMele } = await c.env.DB.prepare('SELECT id, nr_inmatriculare, producator, model FROM masini WHERE user_id = ? ORDER BY created_at DESC').bind(user.uid).all<any>();
+  const masinaSelect = (masiniMele && masiniMele.length)
+    ? `<div class="form-group"><label>Mașina mea</label>
+        <select id="masina-select">
+          <option value="">— Completez manual —</option>
+          ${masiniMele.map((m) => `<option value="${m.id}" data-nr="${esc(m.nr_inmatriculare ?? '')}" data-prod="${esc(m.producator ?? '')}" data-model="${esc(m.model ?? '')}">${esc(m.nr_inmatriculare ?? '')} — ${esc(((m.producator ?? '') + ' ' + (m.model ?? '')).trim())}</option>`).join('')}
+        </select>
+        <div style="font-size:0.75rem;color:var(--grey);margin-top:0.3rem;">Alege o mașină salvată ca să completezi automat datele.</div>
+      </div>`
+    : '';
   let body = `<div class="container">
     <div class="page-title">Programare <span>nouă</span></div>
     <div class="page-subtitle">Completează datele mașinii, alege serviciul și data dorită</div>`;
@@ -421,6 +432,7 @@ async function renderRezervare(c: AppContext, error: string, success: boolean, v
         <div class="rez-grid">
             <div><div class="card">
                 <div class="section-divider">Datele mașinii</div>
+                ${masinaSelect}
                 <div class="form-group"><label>Număr înmatriculare *</label><input type="text" name="nr_inmatriculare" value="${esc(v.nr_inmatriculare ?? '')}" placeholder="ex: B 123 ABC" style="text-transform:uppercase;" required></div>
                 <div class="masina-grid">
                     <div class="form-group"><label>Producător *</label><input type="text" name="producator" value="${esc(v.producator ?? '')}" placeholder="ex: Volkswagen" required></div>
@@ -451,7 +463,7 @@ async function renderRezervare(c: AppContext, error: string, success: boolean, v
         </div>
     </form>
   </div>`;
-  const bodyEnd = `<script>${REZ_SCRIPT}</script>`;
+  const bodyEnd = `<script>${REZ_SCRIPT}</script><script>(function(){var s=document.getElementById('masina-select');if(!s)return;s.addEventListener('change',function(){var o=this.options[this.selectedIndex];if(!o||!o.value)return;function set(n,v){var el=document.querySelector('[name="'+n+'"]');if(el)el.value=v||'';}set('nr_inmatriculare',o.getAttribute('data-nr'));set('producator',o.getAttribute('data-prod'));set('model',o.getAttribute('data-model'));});})();</script>`;
   return c.html(page({ title: 'Programare nouă — APG Garage', user, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: REZ_STYLE, body, bodyEnd }));
 }
 
