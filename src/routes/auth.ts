@@ -4,7 +4,7 @@ import { page } from '../views/layout';
 import { esc } from '../lib/format';
 import { verifyPassword, hashPassword } from '../lib/password';
 import { createSessionCookie, destroySession } from '../lib/session';
-import { notificareContNou } from '../lib/mailer';
+import { notificareContNou } from '../lib/notificari';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 

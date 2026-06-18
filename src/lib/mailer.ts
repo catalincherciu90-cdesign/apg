@@ -1,9 +1,16 @@
 import type { Env } from '../types';
-import { esc, numberFormat, anCurent } from './format';
+import { anCurent } from './format';
 
-// Port din src/helpers/Mailer.php — trimitere prin Resend (API HTTP),
-// deoarece Workers nu pot deschide conexiuni SMTP brute.
-export async function trimiteEmail(env: Env, to: string, subject: string, html: string): Promise<boolean> {
+// Nivel jos — trimitere prin Resend (API HTTP), deoarece Workers nu pot
+// deschide conexiuni SMTP brute. Logica de business (toggle-uri, destinatari,
+// jurnal, șabloane de conținut) stă în lib/notificari.ts.
+
+export interface SendResult {
+  ok: boolean;
+  error?: string;
+}
+
+export async function sendRaw(env: Env, to: string | string[], subject: string, html: string): Promise<SendResult> {
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -14,14 +21,20 @@ export async function trimiteEmail(env: Env, to: string, subject: string, html: 
       body: JSON.stringify({ from: env.MAIL_FROM, to, subject, html }),
     });
     if (!res.ok) {
-      console.error('Mailer error:', res.status, await res.text());
-      return false;
+      const txt = await res.text();
+      console.error('Mailer error:', res.status, txt);
+      return { ok: false, error: `HTTP ${res.status}: ${txt.slice(0, 300)}` };
     }
-    return true;
-  } catch (e) {
+    return { ok: true };
+  } catch (e: any) {
     console.error('Mailer exception:', e);
-    return false;
+    return { ok: false, error: String(e?.message ?? e).slice(0, 300) };
   }
+}
+
+// Compat — trimitere simplă (boolean). Preferă notifica() din lib/notificari.ts.
+export async function trimiteEmail(env: Env, to: string, subject: string, html: string): Promise<boolean> {
+  return (await sendRaw(env, to, subject, html)).ok;
 }
 
 export function emailTemplate(titlu: string, continut: string): string {
@@ -59,109 +72,4 @@ export function emailTemplate(titlu: string, continut: string): string {
 </div>
 </body>
 </html>`;
-}
-
-const SERVICII: Record<string, string> = {
-  revizie: 'Revizie',
-  reparatie: 'Reparație mecanică',
-  verificare_rampa: 'Verificare rampă',
-};
-
-export async function notificareContNou(env: Env, nume: string, email: string, telefon: string) {
-  const continut = `
-    <p>Un client nou s-a înregistrat pe site.</p>
-    <table class="info-table">
-      <tr><td>Nume</td><td>${esc(nume)}</td></tr>
-      <tr><td>Email</td><td>${esc(email)}</td></tr>
-      <tr><td>Telefon</td><td>${esc(telefon || '—')}</td></tr>
-    </table>
-    <a href="${env.BASE_URL}/admin" class="btn">Vezi panoul admin</a>`;
-  await trimiteEmail(env, env.MAIL_ADMIN, 'Cont nou înregistrat — ' + nume, emailTemplate('Cont nou înregistrat', continut));
-
-  const continutClient = `
-    <p>Bun venit, <strong>${esc(nume)}</strong>!</p>
-    <p>Contul tău pe APG Garage a fost creat cu succes. Te poți autentifica și face o programare oricând.</p>
-    <a href="${env.BASE_URL}/login" class="btn">Mergi la cont</a>`;
-  await trimiteEmail(env, email, 'Bun venit la APG Garage!', emailTemplate('Contul tău a fost creat', continutClient));
-}
-
-export async function notificareProgramareNoua(
-  env: Env,
-  nume: string,
-  email: string,
-  nr: string,
-  producator: string,
-  model: string,
-  serviciu: string,
-  data: string,
-  ora: string,
-  durata: number,
-) {
-  const serviciuText = SERVICII[serviciu] ?? serviciu;
-  const [y, m, d] = data.split('-');
-  const dataText = `${d}.${m}.${y}`;
-  const oraText = ora.slice(0, 5);
-
-  const continut = `
-    <p>O nouă programare a fost înregistrată și așteaptă confirmare.</p>
-    <table class="info-table">
-      <tr><td>Client</td><td>${esc(nume)}</td></tr>
-      <tr><td>Email</td><td>${esc(email)}</td></tr>
-      <tr><td>Mașina</td><td>${esc(nr)} — ${esc(producator + ' ' + model)}</td></tr>
-      <tr><td>Serviciu</td><td>${serviciuText}</td></tr>
-      <tr><td>Data</td><td>${dataText} ora ${oraText}</td></tr>
-      <tr><td>Durată</td><td>${durata} ore</td></tr>
-    </table>
-    <a href="${env.BASE_URL}/admin" class="btn">Confirmă programarea</a>`;
-  await trimiteEmail(env, env.MAIL_ADMIN, `Programare nouă — ${nume} / ${nr}`, emailTemplate('Programare nouă în așteptare', continut));
-
-  const continutClient = `
-    <p>Programarea ta a fost înregistrată cu succes și este în așteptarea confirmării din partea service-ului.</p>
-    <table class="info-table">
-      <tr><td>Mașina</td><td>${esc(nr)} — ${esc(producator + ' ' + model)}</td></tr>
-      <tr><td>Serviciu</td><td>${serviciuText}</td></tr>
-      <tr><td>Data</td><td>${dataText} ora ${oraText}</td></tr>
-      <tr><td>Durată</td><td>${durata} ore</td></tr>
-      <tr><td>Status</td><td>În așteptare</td></tr>
-    </table>
-    <p>Vei primi un email când programarea este confirmată.</p>
-    <a href="${env.BASE_URL}/dashboard" class="btn">Vezi programările mele</a>`;
-  await trimiteEmail(env, email, `Programare înregistrată — ${dataText}`, emailTemplate('Programarea ta a fost înregistrată', continutClient));
-}
-
-export async function notificareDevizNou(env: Env, email: string, nr: string, rezervareId: number, total: number) {
-  const continut = `
-    <p>Service-ul APG Garage a emis un deviz pentru mașina ta.</p>
-    <table class="info-table">
-      <tr><td>Mașina</td><td>${esc(nr)}</td></tr>
-      <tr><td>Total deviz</td><td><strong>${numberFormat(total, 2)} lei</strong></td></tr>
-    </table>
-    <p>Intră în contul tău pentru a vedea detaliile complete ale devizului.</p>
-    <a href="${env.BASE_URL}/deviz?rezervare_id=${rezervareId}" class="btn">Vezi devizul</a>`;
-  await trimiteEmail(env, email, 'Deviz nou disponibil — APG Garage', emailTemplate('Ai un deviz nou', continut));
-}
-
-export async function notificareReminderProgramare(
-  env: Env,
-  email: string,
-  nume: string,
-  nr: string,
-  producator: string,
-  model: string,
-  serviciu: string,
-  data: string,
-  ora: string,
-) {
-  const serviciuText = SERVICII[serviciu] ?? serviciu;
-  const [y, m, d] = String(data).slice(0, 10).split('-');
-  const continut = `
-    <p>Bună, <strong>${esc(nume)}</strong>! Îți reamintim că ai o programare la APG Garage <strong>mâine</strong>.</p>
-    <table class="info-table">
-      <tr><td>Mașina</td><td>${esc(nr)} — ${esc(producator + ' ' + model)}</td></tr>
-      <tr><td>Serviciu</td><td>${serviciuText}</td></tr>
-      <tr><td>Data</td><td>${d}.${m}.${y} ora ${String(ora).slice(0, 5)}</td></tr>
-    </table>
-    <p>Te așteptăm! Dacă nu mai poți ajunge, te rugăm să ne anunți.</p>
-    <a href="${env.BASE_URL}/dashboard" class="btn">Vezi programarea</a>`;
-  await trimiteEmail(env, email, 'Reminder programare mâine — APG Garage', emailTemplate('Programarea ta este mâine', continut));
 }

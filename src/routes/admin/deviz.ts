@@ -3,7 +3,7 @@ import type { Env, Variables } from '../../types';
 import { page } from '../../views/layout';
 import { esc, numberFormat, dateRo, timeShort, serviciuLabel } from '../../lib/format';
 import { parseRanduri } from '../../lib/form';
-import { notificareDevizNou } from '../../lib/mailer';
+import { notificareDevizNou } from '../../lib/notificari';
 import { CATALOG_PIESE, CATALOG_MANOPERA } from '../../data/catalog';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();

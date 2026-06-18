@@ -1,9 +1,14 @@
 import type { Env } from './types';
-import { trimiteEmail, emailTemplate, notificareReminderProgramare } from './lib/mailer';
+import { emailTemplate } from './lib/mailer';
+import { notifica, notificareReminderProgramare, notifActiv } from './lib/notificari';
+import { getSetari } from './lib/setari';
 import { esc, dateRo, addDays, diffDays, todayRo } from './lib/format';
 
 // Reminder cu o zi înainte pentru programările confirmate de mâine.
 export async function ruleazaReminderProgramari(env: Env): Promise<void> {
+  const s = await getSetari(env);
+  if (!notifActiv(s, 'reminder_programare')) return;
+
   const maine = addDays(todayRo(), 1);
   const { results } = await env.DB.prepare(
     `SELECT r.nr_inmatriculare, r.producator, r.model, r.serviciu_tip, r.data, r.ora_start, u.email, u.nume
@@ -13,7 +18,7 @@ export async function ruleazaReminderProgramari(env: Env): Promise<void> {
 
   for (const r of results ?? []) {
     await notificareReminderProgramare(
-      env, r.email, r.nume, r.nr_inmatriculare ?? '-', r.producator ?? '', r.model ?? '', r.serviciu_tip, r.data, r.ora_start,
+      env, r.email, r.nume, r.nr_inmatriculare ?? '-', r.producator ?? '', r.model ?? '', r.serviciu_tip, r.data, r.ora_start, s,
     );
   }
 }
@@ -21,6 +26,9 @@ export async function ruleazaReminderProgramari(env: Env): Promise<void> {
 // Port din cron_notificari.php — ruleaza zilnic (cron trigger).
 // Trimite reminder cand mai sunt <=30 zile pana la 1 an de la ultima revizie.
 export async function ruleazaNotificariRevizie(env: Env): Promise<void> {
+  const s = await getSetari(env);
+  if (!notifActiv(s, 'reminder_revizie')) return;
+
   const azi = todayRo();
   const { results } = await env.DB.prepare(
     `SELECT m.*, u.email, u.nume
@@ -49,7 +57,7 @@ export async function ruleazaNotificariRevizie(env: Env): Promise<void> {
         <p>Programează-te acum pentru a-ți păstra mașina în stare optimă.</p>
         <a href="${env.BASE_URL}/rezervare" class="btn">Programează revizia</a>`;
 
-    const ok = await trimiteEmail(env, m.email, `Reminder revizie — ${m.nr_inmatriculare} — APG Garage`, emailTemplate('Revizia mașinii tale se apropie!', continut));
+    const ok = await notifica(env, 'reminder_revizie', m.email, `Reminder revizie — ${m.nr_inmatriculare} — APG Garage`, emailTemplate('Revizia mașinii tale se apropie!', continut), s);
     if (ok) {
       await env.DB.prepare('UPDATE masini SET notificare_trimisa = 1 WHERE id = ?').bind(m.id).run();
     }
