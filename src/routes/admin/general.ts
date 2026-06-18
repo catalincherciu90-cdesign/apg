@@ -198,7 +198,7 @@ async function renderAngajati(c: AppContext, error: string, success: string) {
 }
 
 /* ============================ DATE CONTACT ============================ */
-const CONTACT_KEYS = ['contact_adresa', 'contact_telefon', 'contact_email', 'contact_program_sapt', 'contact_program_ore', 'contact_maps_url'];
+const CONTACT_KEYS = ['contact_adresa', 'contact_telefon', 'contact_email', 'contact_program_sapt', 'contact_program_ore', 'contact_maps_url', 'whatsapp_numar', 'firma_cui', 'firma_reg_com'];
 
 app.post('/contact', async (c) => {
   const form = await c.req.formData();
@@ -238,6 +238,14 @@ async function renderContact(c: AppContext, success: string) {
                 <div class="form-group"><label>Telefon</label><input type="text" name="contact_telefon" value="${esc(s.contact_telefon)}" placeholder="ex: 0700 000 000"><div class="hint">Afișat ca link de apel direct pe mobil</div></div>
                 <div class="form-group"><label>Email</label><input type="email" name="contact_email" value="${esc(s.contact_email)}" placeholder="ex: contact@apg-garage.ro"></div>
             </div>
+            <div class="form-group"><label>Număr WhatsApp</label><input type="text" name="whatsapp_numar" value="${esc(s.whatsapp_numar)}" placeholder="ex: 0700 000 000 (gol = folosește telefonul)"><div class="hint">Folosit pentru butonul flotant de WhatsApp. Dacă e gol, se folosește numărul de telefon.</div></div>
+        </div>
+        <div class="card"><div class="card-label" style="${labelStyle}">Date firmă (pentru paginile legale)</div>
+            <div class="fg2">
+                <div class="form-group"><label>CUI / CIF</label><input type="text" name="firma_cui" value="${esc(s.firma_cui)}" placeholder="ex: RO12345678"></div>
+                <div class="form-group"><label>Nr. Reg. Comerțului</label><input type="text" name="firma_reg_com" value="${esc(s.firma_reg_com)}" placeholder="ex: J40/1234/2020"></div>
+            </div>
+            <div class="hint">Apar în Politica de confidențialitate și Termeni și condiții.</div>
         </div>
         <div class="card"><div class="card-label" style="${labelStyle}">Program de lucru</div>
             <div class="fg2">

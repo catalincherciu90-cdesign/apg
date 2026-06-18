@@ -39,7 +39,16 @@ export interface PageOpts {
 export function page(opts: PageOpts): string {
   const nav = opts.nav ?? 'public';
   const navHtml = nav === 'admin' ? navAdmin(opts.user, opts.currentPath ?? '') : nav === 'public' ? navPublic(opts.user, opts.pagini) : '';
-  const footer = nav === 'admin' ? '' : `<footer>© ${anCurent()} APG Garage. Toate drepturile rezervate.</footer>`;
+  const footer = nav === 'admin' ? '' : `<footer style="border-top:1px solid var(--border);padding:1.5rem;text-align:center;">
+    <div style="display:flex;flex-wrap:wrap;gap:0.6rem 1.2rem;justify-content:center;margin-bottom:0.9rem;font-size:0.82rem;">
+      <a href="/confidentialitate" style="color:var(--grey-light);text-decoration:none;">Politica de confidențialitate</a>
+      <a href="/termeni" style="color:var(--grey-light);text-decoration:none;">Termeni și condiții</a>
+      <a href="/cookies" style="color:var(--grey-light);text-decoration:none;">Politica de cookie-uri</a>
+      <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener nofollow" style="color:var(--grey-light);text-decoration:none;">ANPC – SAL</a>
+      <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener nofollow" style="color:var(--grey-light);text-decoration:none;">ANPC – SOL</a>
+    </div>
+    <div style="color:var(--grey);font-size:0.8rem;">© ${anCurent()} APG Garage. Toate drepturile rezervate.</div>
+  </footer>`;
   const desc = opts.description ?? DEFAULT_DESC;
   const canonical = SITE_URL + (opts.path ?? '');
   const ogImg = SITE_URL + (opts.ogImage ?? '/hero.jpg');
