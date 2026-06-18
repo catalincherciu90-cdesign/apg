@@ -416,7 +416,26 @@ async function renderContinut(c: AppContext, tab: string, success: string) {
 }
 
 /* ============================ CLIENȚI ============================ */
-app.get('/clienti', async (c) => {
+app.post('/clienti', async (c) => {
+  const form = await c.req.formData();
+  let error = '';
+  let success = '';
+  if (String(form.get('actiune') ?? '') === 'reset_parola') {
+    const userId = parseInt(String(form.get('user_id') ?? '0'), 10);
+    const parola = String(form.get('parola_noua') ?? '');
+    if (parola.length < 6) error = 'Parola trebuie să aibă minim 6 caractere.';
+    else {
+      const hash = await hashPassword(parola);
+      await c.env.DB.prepare(`UPDATE users SET parola = ? WHERE id = ? AND rol = 'client'`).bind(hash, userId).run();
+      success = 'Parola clientului a fost schimbată.';
+    }
+  }
+  return renderClienti(c, error, success);
+});
+
+app.get('/clienti', async (c) => renderClienti(c, '', ''));
+
+async function renderClienti(c: AppContext, error: string, success: string) {
   const user = c.get('user')!;
   const { results: clienti } = await c.env.DB.prepare(
     `SELECT u.id, u.nume, u.email, u.telefon, u.created_at,
@@ -433,21 +452,39 @@ app.get('/clienti', async (c) => {
         <td style="text-align:center;">${u.nr_programari}</td>
         <td style="text-align:center;">${u.nr_masini}</td>
         <td>${dRo(u.created_at)}</td>
+        <td><button class="btn btn-outline" style="padding:0.35rem 0.8rem;font-size:0.78rem;white-space:nowrap;" onclick="openReset(${u.id}, '${jsAttr(u.nume)}')">Resetează parola</button></td>
     </tr>`).join('');
 
   const lista = (clienti ?? []).length === 0
     ? `<div class="card" style="text-align:center;color:var(--grey);padding:2rem;">Niciun client înregistrat încă.</div>`
     : `<div class="card" style="padding:0;overflow-x:auto;"><table>
-        <thead><tr><th>Nume</th><th>Email</th><th>Telefon</th><th style="text-align:center;">Programări</th><th style="text-align:center;">Mașini</th><th>Înregistrat</th></tr></thead>
+        <thead><tr><th>Nume</th><th>Email</th><th>Telefon</th><th style="text-align:center;">Programări</th><th style="text-align:center;">Mașini</th><th>Înregistrat</th><th></th></tr></thead>
         <tbody>${rows}</tbody>
       </table></div>`;
 
   const body = `<div class="container">
     <div class="page-title">Conturi <span>clienți</span></div>
     <div class="page-subtitle">Clienții înregistrați pe site${(clienti ?? []).length ? ` (${clienti!.length})` : ''}.</div>
+    ${success ? `<div class="alert alert-success">${esc(success)}</div>` : ''}
+    ${error ? `<div class="alert alert-error">${esc(error)}</div>` : ''}
     ${lista}
+  </div>
+  <div class="modal" id="modal-parola" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;padding:1rem;">
+    <div class="modal-box" style="background:var(--dark2);border:1px solid var(--border);padding:1.8rem;width:100%;max-width:420px;">
+        <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:800;text-transform:uppercase;margin-bottom:1rem;">Resetează <span style="color:var(--red)">parola</span></h3>
+        <p style="color:var(--grey);font-size:0.88rem;margin-bottom:1rem;" id="modal-parola-nume"></p>
+        <form method="POST"><input type="hidden" name="actiune" value="reset_parola"><input type="hidden" name="user_id" id="modal-parola-id">
+            <div class="form-group"><label>Parolă nouă * (minim 6 caractere)</label><input type="password" name="parola_noua" required minlength="6"></div>
+            <div style="display:flex;gap:1rem;margin-top:0.5rem;"><button type="submit" class="btn btn-primary">Salvează</button><button type="button" class="btn btn-outline" onclick="closeReset()">Anulează</button></div>
+        </form>
+    </div>
   </div>`;
-  return c.html(page({ title: 'Clienți — Admin APG Garage', user, nav: 'admin', currentPath: '/admin/clienti', body }));
-});
+  const bodyEnd = `<script>
+    function openReset(id,nume){document.getElementById('modal-parola-id').value=id;document.getElementById('modal-parola-nume').textContent='Client: '+nume;var m=document.getElementById('modal-parola');m.style.display='flex';}
+    function closeReset(){document.getElementById('modal-parola').style.display='none';}
+    document.getElementById('modal-parola').addEventListener('click',function(e){if(e.target===this)closeReset();});
+  </script>`;
+  return c.html(page({ title: 'Clienți — Admin APG Garage', user, nav: 'admin', currentPath: '/admin/clienti', body, bodyEnd }));
+}
 
 export default app;
