@@ -622,10 +622,12 @@ app.post('/cont', async (c) => {
   let success = '';
 
   if (actiune === 'date') {
-    const nume = String(form.get('nume') ?? '').trim();
+    const prenume = String(form.get('prenume') ?? '').trim();
+    const numeFam = String(form.get('nume') ?? '').trim();
+    const nume = (prenume + ' ' + numeFam).trim();
     const email = String(form.get('email') ?? '').trim().toLowerCase();
     const telefon = String(form.get('telefon') ?? '').trim();
-    if (!nume || !email) error = 'Numele și emailul sunt obligatorii.';
+    if (!prenume || !numeFam || !email) error = 'Prenumele, numele și emailul sunt obligatorii.';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) error = 'Adresa de email nu este validă.';
     else {
       const exist = await c.env.DB.prepare('SELECT id FROM users WHERE email = ? AND id != ?').bind(email, user.uid).first<any>();
@@ -655,6 +657,9 @@ app.post('/cont', async (c) => {
 async function renderCont(c: AppContext, error: string, success: string) {
   const user = c.get('user')!;
   const u = (await c.env.DB.prepare('SELECT nume, email, telefon FROM users WHERE id = ?').bind(user.uid).first<any>()) ?? {};
+  const parti = String(u.nume ?? '').trim().split(/\s+/).filter(Boolean);
+  const prenume = parti.shift() ?? '';
+  const numeFam = parti.join(' ');
 
   const body = `<div class="container" style="max-width:600px;">
     <div class="page-title">Contul <span>meu</span></div>
@@ -666,7 +671,8 @@ async function renderCont(c: AppContext, error: string, success: string) {
       <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">Date personale</h3>
       <form method="POST">
         <input type="hidden" name="actiune" value="date">
-        <div class="form-group"><label>Nume complet *</label><input type="text" name="nume" value="${esc(u.nume ?? '')}" required></div>
+        <div class="form-group"><label>Prenume *</label><input type="text" name="prenume" value="${esc(prenume)}" required></div>
+        <div class="form-group"><label>Nume *</label><input type="text" name="nume" value="${esc(numeFam)}" required></div>
         <div class="form-group"><label>Email *</label><input type="email" name="email" value="${esc(u.email ?? '')}" required></div>
         <div class="form-group"><label>Telefon</label><input type="tel" name="telefon" value="${esc(u.telefon ?? '')}" placeholder="07xx xxx xxx"></div>
         <button type="submit" class="btn btn-primary">Salvează datele</button>
