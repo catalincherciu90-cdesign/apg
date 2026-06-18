@@ -5,6 +5,7 @@ import { esc } from '../../lib/format';
 import { getSetari, setSetare } from '../../lib/setari';
 import { sendRaw, emailTemplate } from '../../lib/mailer';
 import { NOTIF_EVENTS, notifActiv, getAdminEmails, ensureNotifLog } from '../../lib/notificari';
+import { gmailConfigured } from '../../lib/gmail';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -122,7 +123,7 @@ async function renderNotificari(c: AppContext, error: string, success: string) {
 
     <div class="notif-card">
       <h3>Test livrare</h3>
-      <p class="hint">Trimite un email de test ca să verifici că Resend este configurat corect (cheia API și domeniul). Implicit folosește prima adresă de admin.</p>
+      <p class="hint">Provider activ: <strong style="color:${gmailConfigured(c.env) ? '#2ecc71' : '#3498db'}">${gmailConfigured(c.env) ? 'Gmail API (' + esc(c.env.GMAIL_SENDER || '') + ')' : (c.env.RESEND_API_KEY ? 'Resend (' + esc(c.env.MAIL_FROM) + ')' : 'NECONFIGURAT')}</strong>. Trimite un email de test ca să verifici că totul funcționează. Implicit folosește prima adresă de admin.</p>
       <form method="POST" style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:flex-end;">
         <input type="hidden" name="actiune" value="test">
         <div class="form-group" style="margin:0;flex:1;min-width:220px;"><label>Trimite testul către</label><input type="email" name="test_email" value="${esc(admini[0] ?? '')}" placeholder="email@exemplu.ro"></div>

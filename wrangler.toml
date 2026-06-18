@@ -25,7 +25,13 @@ BASE_URL = "https://apg-garage.ro"
 MAIL_FROM = "APG Garage <notificari@apg-garage.ro>"
 MAIL_ADMIN = "notificari.apggarage@gmail.com"
 MAIL_REPLY_TO = "notificari.apggarage@gmail.com"
+# Expeditorul când se trimite prin Gmail API (trebuie să fie contul Gmail autorizat)
+GMAIL_SENDER = "APG Garage <notificari.apggarage@gmail.com>"
 
 # Secrete (a se seta cu `wrangler secret put`):
-#   SESSION_SECRET   — cheie pentru semnarea cookie-urilor de sesiune
-#   RESEND_API_KEY   — cheie API Resend pentru trimitere email
+#   SESSION_SECRET        — cheie pentru semnarea cookie-urilor de sesiune
+#   RESEND_API_KEY        — cheie API Resend (folosit dacă Gmail nu e configurat)
+#   GMAIL_CLIENT_ID       — OAuth client ID (Google Cloud)
+#   GMAIL_CLIENT_SECRET   — OAuth client secret
+#   GMAIL_REFRESH_TOKEN   — refresh token pentru contul Gmail expeditor
+# Dacă cele 3 secrete GMAIL_* sunt setate, emailurile pleacă prin Gmail.

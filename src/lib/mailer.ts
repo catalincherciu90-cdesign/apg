@@ -1,16 +1,15 @@
-import type { Env } from '../types';
+import type { Env, SendResult } from '../types';
 import { anCurent } from './format';
+import { gmailConfigured, sendViaGmail } from './gmail';
 
-// Nivel jos — trimitere prin Resend (API HTTP), deoarece Workers nu pot
-// deschide conexiuni SMTP brute. Logica de business (toggle-uri, destinatari,
-// jurnal, șabloane de conținut) stă în lib/notificari.ts.
+// Nivel jos — trimitere email. Dacă Gmail API e configurat (secretele GMAIL_*),
+// emailurile pleacă prin Gmail; altfel prin Resend. Logica de business
+// (toggle-uri, destinatari, jurnal, șabloane) stă în lib/notificari.ts.
 
-export interface SendResult {
-  ok: boolean;
-  error?: string;
-}
+export type { SendResult };
 
 export async function sendRaw(env: Env, to: string | string[], subject: string, html: string): Promise<SendResult> {
+  if (gmailConfigured(env)) return sendViaGmail(env, to, subject, html);
   try {
     const payload: Record<string, unknown> = { from: env.MAIL_FROM, to, subject, html };
     // Reply-To (ex. un Gmail) — răspunsurile clienților ajung acolo.
