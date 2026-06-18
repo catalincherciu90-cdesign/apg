@@ -4,6 +4,7 @@ import { page, SITE_URL } from '../views/layout';
 import { esc, nl2br, numberFormat } from '../lib/format';
 import { getSetari, paginaActiva } from '../lib/setari';
 import { trimiteEmail, emailTemplate } from '../lib/mailer';
+import { ensureMesaje } from '../lib/mesaje';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -346,6 +347,10 @@ app.post('/contact', async (c) => {
   } else if (!emailValid) {
     error = 'Adresa de email nu este validă.';
   } else {
+    // Salvează mesajul în rubrica „Mesaje" din admin
+    await ensureMesaje(c.env);
+    await c.env.DB.prepare('INSERT INTO mesaje (nume, email, telefon, mesaj) VALUES (?, ?, ?, ?)').bind(nume, email, telefon, mesaj).run();
+    // …și trimite și notificare pe email
     const html = emailTemplate('Mesaj nou de pe site', `<table class="info-table">
         <tr><td>Nume</td><td>${esc(nume)}</td></tr>
         <tr><td>Email</td><td>${esc(email)}</td></tr>
