@@ -12,13 +12,16 @@ export interface SendResult {
 
 export async function sendRaw(env: Env, to: string | string[], subject: string, html: string): Promise<SendResult> {
   try {
+    const payload: Record<string, unknown> = { from: env.MAIL_FROM, to, subject, html };
+    // Reply-To (ex. un Gmail) — răspunsurile clienților ajung acolo.
+    if (env.MAIL_REPLY_TO && env.MAIL_REPLY_TO.trim()) payload.reply_to = env.MAIL_REPLY_TO.trim();
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ from: env.MAIL_FROM, to, subject, html }),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) {
       const txt = await res.text();

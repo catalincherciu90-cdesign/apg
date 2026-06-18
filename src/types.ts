@@ -7,6 +7,7 @@ export interface Env {
   BASE_URL: string;
   MAIL_FROM: string;
   MAIL_ADMIN: string;
+  MAIL_REPLY_TO?: string; // adresa de răspuns (ex. un Gmail), opțională
   SESSION_SECRET: string;
   RESEND_API_KEY: string;
 }

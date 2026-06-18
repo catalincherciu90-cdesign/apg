@@ -42,7 +42,7 @@ export const SETARI_DEFAULT: Record<string, string> = {
   // Câte mașini pot fi în lucru simultan (capacitate programări)
   capacitate_simultan: '1',
   // Notificări — adresele de admin care primesc alertele (separate prin virgulă)
-  notif_admin_emails: 'contact@apg-garage.ro',
+  notif_admin_emails: 'notificari.apggarage@gmail.com',
 };
 
 // Pagini informative care pot fi activate/dezactivate din admin (Setări site).
