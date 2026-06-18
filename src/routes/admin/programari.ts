@@ -295,7 +295,7 @@ app.post('/zi', async (c) => {
     const model = String(form.get('model') ?? '').trim();
     const serviciu = String(form.get('serviciu_tip') ?? '').trim();
     const ora = String(form.get('ora_start') ?? '');
-    const durata = parseInt(String(form.get('durata') ?? '2'), 10);
+    const durata = Math.min(24, Math.max(0.5, parseFloat(String(form.get('durata') ?? '2')) || 2));
     const descriere = String(form.get('descriere') ?? '').trim();
 
     let error = '';
@@ -343,10 +343,10 @@ async function renderZi(c: AppContext, data: string, error: string, success: str
   ).bind(valid).all<any>();
 
   const { results: clienti } = await c.env.DB.prepare(`SELECT id, nume, telefon FROM users WHERE rol='client' ORDER BY nume`).all<any>();
-  const { results: servicii } = await c.env.DB.prepare('SELECT nume FROM servicii WHERE activ = 1 ORDER BY ordine ASC, id ASC').all<{ nume: string }>();
+  const { results: servicii } = await c.env.DB.prepare('SELECT nume, durata_ore FROM servicii WHERE activ = 1 ORDER BY ordine ASC, id ASC').all<{ nume: string; durata_ore: number }>();
   const servOpts = (servicii && servicii.length)
-    ? servicii.map((s) => `<option value="${esc(s.nume)}">${esc(s.nume)}</option>`).join('')
-    : `<option value="revizie">Revizie</option><option value="reparatie">Reparație mecanică</option><option value="verificare_rampa">Verificare rampă</option>`;
+    ? servicii.map((s) => `<option value="${esc(s.nume)}" data-durata="${s.durata_ore || 2}">${esc(s.nume)}</option>`).join('')
+    : `<option value="revizie" data-durata="2">Revizie</option><option value="reparatie" data-durata="2">Reparație mecanică</option><option value="verificare_rampa" data-durata="1">Verificare rampă</option>`;
   const clientOpts = (clienti ?? []).map((u) => `<option value="${u.id}">${esc(u.nume)}${u.telefon ? ' — ' + esc(u.telefon) : ''}</option>`).join('');
 
   const byOra = new Map<string, any[]>();
@@ -393,7 +393,7 @@ async function renderZi(c: AppContext, data: string, error: string, success: str
         <input type="hidden" name="actiune" value="adauga_manual"><input type="hidden" name="data" value="${valid}">
         <div class="fg2m">
           <div class="form-group"><label>Client existent</label><select name="client_id"><option value="">— sau client nou mai jos —</option>${clientOpts}</select></div>
-          <div class="form-group"><label>Serviciu *</label><select name="serviciu_tip">${servOpts}</select></div>
+          <div class="form-group"><label>Serviciu *</label><select name="serviciu_tip" id="zi-serviciu">${servOpts}</select></div>
         </div>
         <div class="fg3">
           <div class="form-group"><label>Client nou — nume</label><input type="text" name="client_nou_nume" placeholder="ex: Ion Popescu"></div>
@@ -407,7 +407,7 @@ async function renderZi(c: AppContext, data: string, error: string, success: str
         </div>
         <div class="fg3">
           <div class="form-group"><label>Ora *</label><select name="ora_start"><option value="09:00">09:00</option><option value="11:00">11:00</option><option value="13:00">13:00</option><option value="15:00">15:00</option></select></div>
-          <div class="form-group"><label>Durată</label><select name="durata"><option value="2">2 ore</option><option value="4">4 ore</option></select></div>
+          <div class="form-group"><label>Durată (ore)</label><input type="number" name="durata" id="zi-durata" min="0.5" max="24" step="0.5" value="2"></div>
           <div class="form-group" style="display:flex;align-items:flex-end;"><button type="submit" class="btn btn-primary" style="width:100%;">Adaugă în program</button></div>
         </div>
         <div class="form-group" style="margin-bottom:0;"><label>Descriere (opțional)</label><input type="text" name="descriere" placeholder="Detalii lucrare..."></div>
@@ -416,7 +416,8 @@ async function renderZi(c: AppContext, data: string, error: string, success: str
 
     ${blocuri}
   </div>`;
-  return c.html(page({ title: 'Programul zilei — Admin APG Garage', user, nav: 'admin', currentPath: '/admin/zi', headExtra: ZI_STYLE, body }));
+  const bodyEnd = `<script>(function(){var sv=document.getElementById('zi-serviciu'),d=document.getElementById('zi-durata');if(!sv||!d)return;function sync(){var o=sv.options[sv.selectedIndex];var dd=o&&o.getAttribute('data-durata');if(dd)d.value=dd;}sv.addEventListener('change',sync);sync();})();</script>`;
+  return c.html(page({ title: 'Programul zilei — Admin APG Garage', user, nav: 'admin', currentPath: '/admin/zi', headExtra: ZI_STYLE, body, bodyEnd }));
 }
 
 export default app;
