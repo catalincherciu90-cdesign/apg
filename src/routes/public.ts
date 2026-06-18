@@ -5,7 +5,7 @@ import { esc, nl2br, numberFormat } from '../lib/format';
 import { getSetari, paginaActiva } from '../lib/setari';
 import { notificareMesajContact, notificareCerereTractare, notificareCererePiesa } from '../lib/notificari';
 import { ensureMesaje } from '../lib/mesaje';
-import { ensureRecenzii, stele, verifyReviewToken } from '../lib/recenzii';
+import { ensureRecenzii, stele, verifyReviewToken, numeScurt } from '../lib/recenzii';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -112,7 +112,7 @@ app.get('/', async (c) => {
     <div class="section-label">Părerea clienților</div>
     <div class="section-title">Ce spun <span>clienții</span></div>
     <div class="reviews-grid">
-      ${recenzii.map((r) => `<div class="review-card"><div class="review-stars">${stele(r.rating)}</div><p>„${esc(r.text)}"</p><div class="review-name">— ${esc(r.nume)}</div></div>`).join('')}
+      ${recenzii.map((r) => `<div class="review-card"><div class="review-stars">${stele(r.rating)}</div><p>„${esc(r.text)}"</p><div class="review-name">— ${esc(numeScurt(r.nume))}</div></div>`).join('')}
     </div>
   </section>` : ''}
   <section class="cta-photo"><div class="cta-inner"><div class="cta-box">

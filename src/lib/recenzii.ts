@@ -23,6 +23,15 @@ export function stele(rating: number): string {
   return '★★★★★☆☆☆☆☆'.slice(5 - r, 10 - r);
 }
 
+// Afișare prietenoasă cu confidențialitatea: prenume întreg + inițialele
+// restului numelui. Ex: "Andrei Marinescu" -> "Andrei M.".
+export function numeScurt(nume: string): string {
+  const parti = String(nume ?? '').trim().split(/\s+/).filter(Boolean);
+  if (parti.length <= 1) return parti[0] ?? '';
+  const initiale = parti.slice(1).map((p) => p.charAt(0).toUpperCase() + '.').join(' ');
+  return parti[0] + ' ' + initiale;
+}
+
 // Token HMAC pentru linkul de recenzie din email (nu poate fi ghicit/forjat).
 async function hmacHex(secret: string, msg: string): Promise<string> {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret || 'apg'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
