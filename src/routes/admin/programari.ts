@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import type { Env, Variables, AppContext } from '../../types';
 import { page } from '../../views/layout';
-import { esc, dateRo, timeShort, serviciuLabel, STATUS_LABEL } from '../../lib/format';
+import { esc, dateRo, timeShort, serviciuLabel, STATUS_LABEL, todayRo, addDays } from '../../lib/format';
+import { hashPassword } from '../../lib/password';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -224,6 +225,166 @@ async function renderBlocare(c: AppContext, error: string, success: string) {
     ${lista}
   </div>`;
   return c.html(page({ title: 'Zile blocate — APG Garage', user, nav: 'admin', currentPath: '/admin/blocare', body }));
+}
+
+/* ============================ PROGRAMUL ZILEI ============================ */
+const ZI_STYLE = `<style>
+    .zi-nav { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .zi-nav .zi-when { font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+    .zi-nav a, .zi-nav button { border:1px solid var(--border); color:var(--grey); background:none; text-decoration:none; padding:0.4rem 0.8rem; font-size:0.85rem; cursor:pointer; transition:all 0.15s; }
+    .zi-nav a:hover { border-color:var(--red); color:var(--red); }
+    .zi-nav input[type=date] { background:var(--black); border:1px solid var(--border); color:var(--white); padding:0.4rem 0.6rem; font-family:'Barlow',sans-serif; }
+    .slot-block { margin-bottom:1.2rem; }
+    .slot-time { font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; font-weight:700; letter-spacing:1px; padding:0.5rem 1rem; background:var(--black); border-left:4px solid var(--red); display:flex; justify-content:space-between; align-items:center; }
+    .slot-cap { font-size:0.72rem; color:var(--grey); letter-spacing:1px; }
+    .zi-card { background:var(--dark2); border:1px solid var(--border); border-top:none; border-left:4px solid var(--border); padding:0.9rem 1.2rem; display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:center; }
+    .zi-card.status-asteptare { border-left-color:#f0a500; } .zi-card.status-confirmat { border-left-color:#2ecc71; } .zi-card.status-in_lucru { border-left-color:#3498db; } .zi-card.status-finalizat { border-left-color:var(--grey); }
+    .zi-card .zc-main { font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:1px; }
+    .zi-card .zc-main small { display:block; font-family:'Barlow',sans-serif; font-weight:400; letter-spacing:0; color:var(--grey); font-size:0.82rem; }
+    .zi-card .zc-meta { color:var(--grey-light); font-size:0.85rem; }
+    .adauga-form { background:var(--dark2); border:1px solid var(--border); border-top:4px solid var(--red); padding:1.5rem; margin-bottom:2rem; }
+    .adauga-form h3 { font-family:'Barlow Condensed',sans-serif; font-size:1.15rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:1rem; }
+    .fg3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 1rem; } .fg2m { display:grid; grid-template-columns:1fr 1fr; gap:0 1rem; }
+    @media(max-width:650px){ .fg3,.fg2m { grid-template-columns:1fr; } }
+</style>`;
+
+const ALL_SLOTS = ['09:00', '11:00', '13:00', '15:00'];
+
+app.post('/zi', async (c) => {
+  const form = await c.req.formData();
+  const data = String(form.get('data') ?? todayRo());
+  if (String(form.get('actiune') ?? '') === 'adauga_manual') {
+    const clientId = String(form.get('client_id') ?? '');
+    const numeNou = String(form.get('client_nou_nume') ?? '').trim();
+    const telNou = String(form.get('client_nou_telefon') ?? '').trim();
+    const emailNou = String(form.get('client_nou_email') ?? '').trim();
+    const nr = String(form.get('nr_inmatriculare') ?? '').trim().toUpperCase();
+    const prod = String(form.get('producator') ?? '').trim();
+    const model = String(form.get('model') ?? '').trim();
+    const serviciu = String(form.get('serviciu_tip') ?? '').trim();
+    const ora = String(form.get('ora_start') ?? '');
+    const durata = parseInt(String(form.get('durata') ?? '2'), 10);
+    const descriere = String(form.get('descriere') ?? '').trim();
+
+    let error = '';
+    let userId = parseInt(clientId, 10);
+    if (!clientId && numeNou) {
+      // client nou (walk-in / telefon) — cont minimal
+      const email = emailNou || `walkin.${Date.now()}@apg-garage.ro`;
+      const exist = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first<{ id: number }>();
+      if (exist) userId = exist.id;
+      else {
+        const hash = await hashPassword(Math.random().toString(36).slice(2) + Date.now());
+        const res = await c.env.DB.prepare('INSERT INTO users (nume, email, parola, telefon) VALUES (?, ?, ?, ?)').bind(numeNou, email, hash, telNou).run();
+        userId = Number(res.meta.last_row_id);
+      }
+    }
+    if (!userId || isNaN(userId)) error = 'Alege un client existent sau completează numele clientului nou.';
+    else if (!serviciu || !ora) error = 'Alege serviciul și ora.';
+    else if (!nr || !prod || !model) error = 'Completează datele mașinii.';
+    else {
+      await c.env.DB.prepare('INSERT INTO rezervari (user_id, nr_inmatriculare, producator, model, serviciu_tip, descriere, data, ora_start, durata, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        .bind(userId, nr, prod, model, serviciu, descriere, data, ora + ':00', durata, 'confirmat').run();
+    }
+    if (error) return renderZi(c, data, error, '');
+    return c.redirect('/admin/zi?data=' + data);
+  }
+  return renderZi(c, data, '', '');
+});
+
+app.get('/zi', async (c) => {
+  const data = c.req.query('data') || todayRo();
+  return renderZi(c, data, '', '');
+});
+
+async function renderZi(c: AppContext, data: string, error: string, success: string) {
+  const user = c.get('user')!;
+  const valid = /^\d{4}-\d{2}-\d{2}$/.test(data) ? data : todayRo();
+
+  const capacitate = Math.max(1, parseInt((await c.env.DB.prepare(`SELECT valoare FROM setari WHERE cheie='capacitate_simultan'`).first<{ valoare: string }>())?.valoare || '1', 10) || 1);
+
+  const { results: rez } = await c.env.DB.prepare(
+    `SELECT r.*, u.nume as client_nume, u.telefon as client_telefon
+     FROM rezervari r JOIN users u ON u.id = r.user_id
+     WHERE r.data = ? AND r.status IN ('asteptare','confirmat','in_lucru','finalizat')
+     ORDER BY r.ora_start ASC`,
+  ).bind(valid).all<any>();
+
+  const { results: clienti } = await c.env.DB.prepare(`SELECT id, nume, telefon FROM users WHERE rol='client' ORDER BY nume`).all<any>();
+  const { results: servicii } = await c.env.DB.prepare('SELECT nume FROM servicii WHERE activ = 1 ORDER BY ordine ASC, id ASC').all<{ nume: string }>();
+  const servOpts = (servicii && servicii.length)
+    ? servicii.map((s) => `<option value="${esc(s.nume)}">${esc(s.nume)}</option>`).join('')
+    : `<option value="revizie">Revizie</option><option value="reparatie">Reparație mecanică</option><option value="verificare_rampa">Verificare rampă</option>`;
+  const clientOpts = (clienti ?? []).map((u) => `<option value="${u.id}">${esc(u.nume)}${u.telefon ? ' — ' + esc(u.telefon) : ''}</option>`).join('');
+
+  const byOra = new Map<string, any[]>();
+  for (const r of rez ?? []) {
+    const o = timeShort(r.ora_start);
+    if (!byOra.has(o)) byOra.set(o, []);
+    byOra.get(o)!.push(r);
+  }
+
+  const zileRo = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+  const dow = new Date(valid + 'T00:00:00Z').getUTCDay();
+  const total = (rez ?? []).length;
+
+  const blocuri = ALL_SLOTS.map((slot) => {
+    const list = byOra.get(slot) ?? [];
+    const carduri = list.map((r) => `<div class="zi-card status-${r.status}">
+        <div class="zc-main">${esc(r.nr_inmatriculare ?? '-')}<small>${esc((r.producator ?? '') + ' ' + (r.model ?? ''))}</small></div>
+        <div class="zc-meta">${esc(r.client_nume)}${r.client_telefon ? ' · <a href="tel:' + esc(r.client_telefon) + '" style="color:var(--grey-light);text-decoration:none;">' + esc(r.client_telefon) + '</a>' : ''}</div>
+        <div class="zc-meta">${serviciuLabel(r.serviciu_tip)} · ${r.durata}h</div>
+        <span class="badge badge-${r.status}">${STATUS_LABEL[r.status] ?? r.status}</span>
+        <a href="/admin/deviz?rezervare_id=${r.id}" style="color:var(--red);font-size:0.8rem;text-decoration:none;">Deviz →</a>
+    </div>`).join('');
+    return `<div class="slot-block">
+      <div class="slot-time"><span>${slot}</span><span class="slot-cap">${list.length}/${capacitate} ocupate</span></div>
+      ${list.length ? carduri : '<div class="zi-card" style="color:var(--grey);justify-content:center;">— liber —</div>'}
+    </div>`;
+  }).join('');
+
+  const body = `<div class="container">
+    <div class="page-title">Programul <span>zilei</span></div>
+    <div class="page-subtitle">${total} programări active în această zi · capacitate ${capacitate}/interval</div>
+    ${success ? `<div class="alert alert-success">${esc(success)}</div>` : ''}
+    ${error ? `<div class="alert alert-error">${esc(error)}</div>` : ''}
+
+    <div class="zi-nav">
+      <a href="/admin/zi?data=${addDays(valid, -1)}">← Ziua precedentă</a>
+      <div class="zi-when">${zileRo[dow]}, ${dateRo(valid)}</div>
+      <form method="GET" style="display:flex;gap:0.5rem;align-items:center;"><input type="date" name="data" value="${valid}"><button type="submit">Mergi</button></form>
+      <a href="/admin/zi?data=${addDays(valid, 1)}">Ziua următoare →</a>
+    </div>
+
+    <div class="adauga-form"><h3>+ Programare manuală (telefon / la fața locului)</h3>
+      <form method="POST">
+        <input type="hidden" name="actiune" value="adauga_manual"><input type="hidden" name="data" value="${valid}">
+        <div class="fg2m">
+          <div class="form-group"><label>Client existent</label><select name="client_id"><option value="">— sau client nou mai jos —</option>${clientOpts}</select></div>
+          <div class="form-group"><label>Serviciu *</label><select name="serviciu_tip">${servOpts}</select></div>
+        </div>
+        <div class="fg3">
+          <div class="form-group"><label>Client nou — nume</label><input type="text" name="client_nou_nume" placeholder="ex: Ion Popescu"></div>
+          <div class="form-group"><label>Telefon</label><input type="tel" name="client_nou_telefon" placeholder="07xx..."></div>
+          <div class="form-group"><label>Email (opțional)</label><input type="email" name="client_nou_email" placeholder="opțional"></div>
+        </div>
+        <div class="fg3">
+          <div class="form-group"><label>Nr. înmatriculare *</label><input type="text" name="nr_inmatriculare" style="text-transform:uppercase;" placeholder="B 123 ABC"></div>
+          <div class="form-group"><label>Producător *</label><input type="text" name="producator" placeholder="VW"></div>
+          <div class="form-group"><label>Model *</label><input type="text" name="model" placeholder="Golf"></div>
+        </div>
+        <div class="fg3">
+          <div class="form-group"><label>Ora *</label><select name="ora_start"><option value="09:00">09:00</option><option value="11:00">11:00</option><option value="13:00">13:00</option><option value="15:00">15:00</option></select></div>
+          <div class="form-group"><label>Durată</label><select name="durata"><option value="2">2 ore</option><option value="4">4 ore</option></select></div>
+          <div class="form-group" style="display:flex;align-items:flex-end;"><button type="submit" class="btn btn-primary" style="width:100%;">Adaugă în program</button></div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;"><label>Descriere (opțional)</label><input type="text" name="descriere" placeholder="Detalii lucrare..."></div>
+      </form>
+    </div>
+
+    ${blocuri}
+  </div>`;
+  return c.html(page({ title: 'Programul zilei — Admin APG Garage', user, nav: 'admin', currentPath: '/admin/zi', headExtra: ZI_STYLE, body }));
 }
 
 export default app;

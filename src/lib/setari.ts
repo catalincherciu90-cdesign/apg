@@ -39,6 +39,8 @@ export const SETARI_DEFAULT: Record<string, string> = {
   pagina_despre: '1',
   pagina_preturi: '1',
   pagina_contact: '1',
+  // Câte mașini pot fi în lucru simultan (capacitate programări)
+  capacitate_simultan: '1',
 };
 
 // Pagini informative care pot fi activate/dezactivate din admin (Setări site).

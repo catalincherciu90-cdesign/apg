@@ -1,6 +1,22 @@
 import type { Env } from './types';
-import { trimiteEmail, emailTemplate } from './lib/mailer';
+import { trimiteEmail, emailTemplate, notificareReminderProgramare } from './lib/mailer';
 import { esc, dateRo, addDays, diffDays, todayRo } from './lib/format';
+
+// Reminder cu o zi înainte pentru programările confirmate de mâine.
+export async function ruleazaReminderProgramari(env: Env): Promise<void> {
+  const maine = addDays(todayRo(), 1);
+  const { results } = await env.DB.prepare(
+    `SELECT r.nr_inmatriculare, r.producator, r.model, r.serviciu_tip, r.data, r.ora_start, u.email, u.nume
+     FROM rezervari r JOIN users u ON u.id = r.user_id
+     WHERE r.data = ? AND r.status = 'confirmat' AND u.email IS NOT NULL AND u.email NOT LIKE 'walkin.%'`,
+  ).bind(maine).all<any>();
+
+  for (const r of results ?? []) {
+    await notificareReminderProgramare(
+      env, r.email, r.nume, r.nr_inmatriculare ?? '-', r.producator ?? '', r.model ?? '', r.serviciu_tip, r.data, r.ora_start,
+    );
+  }
+}
 
 // Port din cron_notificari.php — ruleaza zilnic (cron trigger).
 // Trimite reminder cand mai sunt <=30 zile pana la 1 an de la ultima revizie.

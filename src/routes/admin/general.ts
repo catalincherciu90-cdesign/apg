@@ -256,7 +256,11 @@ app.post('/setari', async (c) => {
     titlu: ['tractari_titlu', 'dezmembrari_titlu'],
   };
   let success = '';
-  if (permise[actiune]?.includes(cheie)) {
+  if (actiune === 'capacitate') {
+    const n = Math.max(1, parseInt(valoare || '1', 10) || 1);
+    await setSetare(c.env, 'capacitate_simultan', String(n));
+    success = 'Capacitatea a fost salvată.';
+  } else if (permise[actiune]?.includes(cheie)) {
     await setSetare(c.env, cheie, actiune === 'toggle' ? String(form.get('valoare') ?? '0') : valoare);
     success = actiune === 'toggle' ? 'Setarea a fost salvată.' : actiune === 'telefon' ? 'Numărul de telefon a fost salvat.' : actiune === 'mesaj' ? 'Mesajul a fost salvat.' : 'Titlul a fost salvat.';
   }
@@ -329,11 +333,20 @@ async function renderSetari(c: AppContext, success: string) {
     </div></div>`;
   }).join('');
 
+  const capacitate = Math.max(1, parseInt(s.capacitate_simultan || '1', 10) || 1);
   const body = `<div class="container" style="max-width:750px;">
     <div class="page-title">Setări <span>site</span></div>
     <div class="page-subtitle">Activează sau dezactivează secțiunile publice ale site-ului.</div>
     ${success ? `<div class="alert alert-success">${esc(success)}</div>` : ''}
-    <div style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin:0.5rem 0 0.8rem;">Servicii cu formular</div>
+    <div style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin:0.5rem 0 0.8rem;">Capacitate programări</div>
+    <div class="setare-card"><div style="flex:1;">
+      <div class="setare-info" style="margin-bottom:0.8rem;"><h3>Mașini în lucru simultan</h3><p>Câte programări poți prelua în același interval (ex. nr. de rampe/mecanici). Sloturile de pe site se blochează abia când se atinge această capacitate.</p></div>
+      <form method="POST" style="display:flex;gap:0.8rem;align-items:flex-end;flex-wrap:wrap;"><input type="hidden" name="actiune" value="capacitate">
+        <div class="form-group" style="margin:0;width:120px;"><label>Capacitate</label><input type="number" name="valoare" min="1" max="20" value="${capacitate}"></div>
+        <button type="submit" class="btn btn-primary btn-sm" style="margin-bottom:0;">Salvează</button>
+      </form>
+    </div></div>
+    <div style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin:1.8rem 0 0.8rem;">Servicii cu formular</div>
     ${carduri}
     <div style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin:1.8rem 0 0.8rem;">Pagini informative</div>
     ${carduriPagini}

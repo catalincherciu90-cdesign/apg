@@ -7,7 +7,7 @@ import publicRoutes from './routes/public';
 import authRoutes from './routes/auth';
 import clientRoutes from './routes/client';
 import adminRoutes from './routes/admin';
-import { ruleazaNotificariRevizie } from './cron';
+import { ruleazaNotificariRevizie, ruleazaReminderProgramari } from './cron';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -67,5 +67,6 @@ export default {
   fetch: app.fetch,
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(ruleazaNotificariRevizie(env));
+    ctx.waitUntil(ruleazaReminderProgramari(env));
   },
 };
