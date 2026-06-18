@@ -52,7 +52,7 @@ app.post('/servicii', async (c) => {
   if (actiune === 'adauga') {
     const nume = String(form.get('nume') ?? '').trim();
     const descr = String(form.get('descriere') ?? '').trim();
-    const durata = parseInt(String(form.get('durata_ore') ?? '2'), 10);
+    const durata = Math.min(24, Math.max(0.5, parseFloat(String(form.get('durata_ore') ?? '2')) || 2));
     if (!nume) error = 'Numele serviciului este obligatoriu.';
     else {
       const row = await c.env.DB.prepare('SELECT MAX(ordine) as m FROM servicii').first<{ m: number }>();
@@ -63,7 +63,7 @@ app.post('/servicii', async (c) => {
     const id = parseInt(String(form.get('serviciu_id') ?? '0'), 10);
     const nume = String(form.get('nume') ?? '').trim();
     const descr = String(form.get('descriere') ?? '').trim();
-    const durata = parseInt(String(form.get('durata_ore') ?? '2'), 10);
+    const durata = Math.min(24, Math.max(0.5, parseFloat(String(form.get('durata_ore') ?? '2')) || 2));
     const activ = form.get('activ') !== null ? 1 : 0;
     if (!nume) error = 'Numele serviciului este obligatoriu.';
     else {
@@ -105,7 +105,7 @@ async function renderServicii(c: AppContext, error: string, success: string) {
         <form method="POST"><input type="hidden" name="actiune" value="adauga">
             <div class="fg3">
                 <div class="form-group"><label>Nume serviciu *</label><input type="text" name="nume" placeholder="ex: Schimb anvelope" required></div>
-                <div class="form-group"><label>Durată estimată</label><select name="durata_ore"><option value="2">2 ore</option><option value="4">4 ore (zi întreagă)</option></select></div>
+                <div class="form-group"><label>Durată estimată (ore)</label><input type="number" name="durata_ore" min="0.5" max="24" step="0.5" value="2"><div style="font-size:0.75rem;color:var(--grey);margin-top:0.3rem;">Poți pune și jumătăți de oră (ex. 1.5, 3).</div></div>
                 <div class="form-group" style="display:flex;align-items:flex-end;"><button type="submit" class="btn btn-primary" style="width:100%;">Adaugă</button></div>
             </div>
             <div class="form-group" style="margin-bottom:0;"><label>Descriere (opțional)</label><input type="text" name="descriere" placeholder="Descriere scurtă afișată pe site..."></div>
@@ -118,7 +118,7 @@ async function renderServicii(c: AppContext, error: string, success: string) {
     <form method="POST"><input type="hidden" name="actiune" value="editeaza"><input type="hidden" name="serviciu_id" id="edit-id">
         <div class="form-group"><label>Nume serviciu *</label><input type="text" name="nume" id="edit-nume" required></div>
         <div class="form-group"><label>Descriere</label><input type="text" name="descriere" id="edit-descriere" placeholder="Descriere scurtă..."></div>
-        <div class="form-group"><label>Durată estimată</label><select name="durata_ore" id="edit-durata"><option value="2">2 ore</option><option value="4">4 ore (zi întreagă)</option></select></div>
+        <div class="form-group"><label>Durată estimată (ore)</label><input type="number" name="durata_ore" id="edit-durata" min="0.5" max="24" step="0.5"></div>
         <div class="form-group"><label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;"><input type="checkbox" name="activ" id="edit-activ" value="1" style="width:auto;accent-color:var(--red);"> Serviciu activ (vizibil pe site)</label></div>
         <div style="display:flex;gap:1rem;margin-top:0.5rem;"><button type="submit" class="btn btn-primary">Salvează</button><button type="button" class="btn btn-outline" onclick="closeEdit()">Anulează</button></div>
     </form></div></div>`;
