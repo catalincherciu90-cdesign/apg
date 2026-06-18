@@ -94,6 +94,7 @@ export function siteFooter(s: Record<string, string>): string {
     ['/servicii/verificare-rampa', 'Verificare rampă'],
   ];
   return `<footer class="site-footer">
+    <button class="footer-toggle" aria-expanded="false" onclick="var f=this.closest('.site-footer');var o=f.classList.toggle('open');this.setAttribute('aria-expanded',o);">Informații &amp; contact <span class="ft-arrow">▾</span></button>
     <div class="footer-grid">
       <div class="footer-col">
         <div class="footer-brand">APG <span>Garage</span></div>

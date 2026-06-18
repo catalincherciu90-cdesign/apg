@@ -385,11 +385,52 @@ footer {
     font-size: 0.8rem;
     text-align: center;
 }
-@media (max-width: 800px) {
-    .site-footer .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.8rem; }
+
+/* Buton de extindere footer — vizibil doar pe mobil, animat ca să atragă atenția */
+.site-footer .footer-toggle { display: none; }
+@keyframes footerPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(196,196,199,0); border-color: var(--border); }
+    50%      { box-shadow: 0 0 0 5px rgba(196,196,199,0.14); border-color: var(--red); }
 }
-@media (max-width: 480px) {
-    .site-footer .footer-grid { grid-template-columns: 1fr; }
+@keyframes ftBounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(4px); }
+}
+@media (max-width: 800px) {
+    .site-footer { padding-top: 1.5rem; }
+    .site-footer .footer-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        width: 100%;
+        background: var(--dark2);
+        border: 1px solid var(--border);
+        color: var(--white);
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-size: 0.92rem;
+        padding: 0.95rem 1rem;
+        cursor: pointer;
+        margin-bottom: 1.2rem;
+        animation: footerPulse 1.8s ease-in-out infinite;
+    }
+    .site-footer .footer-toggle .ft-arrow {
+        display: inline-block;
+        font-size: 0.8rem;
+        transition: transform 0.25s;
+        animation: ftBounce 1.4s ease-in-out infinite;
+    }
+    .site-footer .footer-grid {
+        display: none;
+        grid-template-columns: 1fr;
+        gap: 1.8rem;
+    }
+    .site-footer.open .footer-grid { display: grid; }
+    .site-footer.open .footer-toggle { animation: none; border-color: var(--red); }
+    .site-footer.open .footer-toggle .ft-arrow { transform: rotate(180deg); animation: none; }
 }
 
 /* =====================
