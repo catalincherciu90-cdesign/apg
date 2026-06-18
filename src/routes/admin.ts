@@ -66,6 +66,7 @@ app.use('/dezmembrari', requireAccess('dezmembrari'));
 app.use('/cereri-piese', requireAccess('dezmembrari'));
 app.use('/preturi', requireSuperAdmin);
 app.use('/clienti', requireSuperAdmin);
+app.use('/clienti/profil', requireSuperAdmin);
 app.use('/mesaje', requireSuperAdmin);
 app.use('/notificari', requireSuperAdmin);
 app.use('/angajati', requireSuperAdmin);

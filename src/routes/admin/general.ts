@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { Env, Variables, SessionUser, AppContext } from '../../types';
 import { page } from '../../views/layout';
-import { esc } from '../../lib/format';
+import { esc, dateRo, todayRo, addDays, diffDays, numberFormat, serviciuLabel, timeShort, STATUS_LABEL } from '../../lib/format';
 import { hashPassword } from '../../lib/password';
 import { getAll } from '../../lib/form';
 import { LABELS, SECTIUNI } from '../../lib/permisiuni';
@@ -448,6 +448,89 @@ app.post('/clienti', async (c) => {
 
 app.get('/clienti', async (c) => renderClienti(c, '', ''));
 
+/* ============================ PROFIL CLIENT ============================ */
+app.get('/clienti/profil', async (c) => {
+  const user = c.get('user')!;
+  const id = parseInt(c.req.query('id') ?? '0', 10);
+  const client = id ? await c.env.DB.prepare(`SELECT * FROM users WHERE id = ? AND rol = 'client'`).bind(id).first<any>() : null;
+  if (!client) {
+    const body = `<div class="container" style="max-width:700px;text-align:center;padding-top:3rem;">
+      <div class="page-title">Client <span>negăsit</span></div>
+      <p style="color:var(--grey);margin:1rem 0;">Clientul căutat nu există.</p>
+      <a href="/admin/clienti" class="btn btn-primary">Înapoi la clienți</a></div>`;
+    return c.html(page({ title: 'Client negăsit — Admin', user, nav: 'admin', currentPath: '/admin/clienti', body }), 404);
+  }
+
+  const azi = todayRo();
+  const { results: masini } = await c.env.DB.prepare('SELECT * FROM masini WHERE user_id = ? ORDER BY created_at DESC').bind(id).all<any>();
+  const { results: rezervari } = await c.env.DB.prepare(
+    `SELECT r.*, (SELECT IFNULL(SUM(dr.total),0) FROM devize d JOIN deviz_randuri dr ON dr.deviz_id = d.id WHERE d.rezervare_id = r.id) AS deviz_total,
+       (SELECT d.id FROM devize d WHERE d.rezervare_id = r.id LIMIT 1) AS deviz_id
+     FROM rezervari r WHERE r.user_id = ? ORDER BY r.data DESC, r.ora_start DESC`,
+  ).bind(id).all<any>();
+
+  const finalizate = (rezervari ?? []).filter((r) => r.status === 'finalizat').length;
+  const totalCheltuit = (rezervari ?? []).reduce((s, r) => s + (Number(r.deviz_total) || 0), 0);
+
+  // Mașini cu zile până la următoarea revizie
+  const masiniCards = (masini ?? []).length === 0
+    ? `<div class="card" style="text-align:center;color:var(--grey);padding:1.5rem;">Clientul nu are mașini înregistrate.</div>`
+    : (masini ?? []).map((m) => {
+        let revizieHtml = '<span style="color:var(--grey);">Fără dată de revizie</span>';
+        if (m.data_ultima_revizie) {
+          const scadenta = addDays(String(m.data_ultima_revizie).slice(0, 10), 365);
+          const zile = diffDays(azi, scadenta);
+          const culoare = zile < 0 ? 'var(--red)' : zile <= 30 ? '#f0a500' : '#2ecc71';
+          const text = zile < 0 ? `Depășită cu ${Math.abs(zile)} zile` : `${zile} zile rămase`;
+          revizieHtml = `<span style="color:${culoare};font-weight:700;">${text}</span><br><small style="color:var(--grey);">scadență ${dateRo(scadenta)} · ultima: ${dateRo(m.data_ultima_revizie)}</small>`;
+        }
+        return `<div class="card" style="margin-bottom:0.8rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center;">
+          <div><div style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;letter-spacing:1px;">${esc(m.nr_inmatriculare ?? '-')}</div>
+            <div style="color:var(--grey);font-size:0.88rem;">${esc((m.producator ?? '') + ' ' + (m.model ?? ''))}${m.serie_caroserie ? ' · ' + esc(m.serie_caroserie) : ''}</div></div>
+          <div style="text-align:right;font-size:0.9rem;">${revizieHtml}</div>
+        </div>`;
+      }).join('');
+
+  // Istoric lucrări
+  const istoricRows = (rezervari ?? []).length === 0
+    ? `<tr><td colspan="6" style="text-align:center;color:var(--grey);padding:1.5rem;">Nicio lucrare înregistrată.</td></tr>`
+    : (rezervari ?? []).map((r) => `<tr>
+        <td style="white-space:nowrap;">${dateRo(r.data)}<br><small style="color:var(--grey);">${timeShort(r.ora_start)}</small></td>
+        <td><strong style="font-family:'Barlow Condensed',sans-serif;letter-spacing:0.5px;">${esc(r.nr_inmatriculare ?? '-')}</strong><br><small style="color:var(--grey);">${esc((r.producator ?? '') + ' ' + (r.model ?? ''))}</small></td>
+        <td>${esc(serviciuLabel(r.serviciu_tip))}${r.descriere ? `<br><small style="color:var(--grey);">${esc(String(r.descriere).slice(0, 60))}</small>` : ''}</td>
+        <td><span class="badge badge-${r.status}">${STATUS_LABEL[r.status] ?? r.status}</span></td>
+        <td style="text-align:right;white-space:nowrap;">${Number(r.deviz_total) > 0 ? `<strong>${numberFormat(r.deviz_total, 2)} lei</strong>` : '—'}</td>
+        <td style="text-align:right;">${r.deviz_id ? `<a href="/admin/deviz?rezervare_id=${r.id}" style="color:var(--red);text-decoration:none;font-size:0.82rem;white-space:nowrap;">Deviz →</a>` : ''}</td>
+    </tr>`).join('');
+
+  const body = `<div class="container" style="max-width:960px;">
+    <a href="/admin/clienti" style="color:var(--grey);text-decoration:none;font-size:0.85rem;">← Înapoi la clienți</a>
+    <div class="page-title" style="margin-top:0.5rem;">${esc(client.nume)}</div>
+    <div class="page-subtitle">Profil client · înregistrat ${dateRo(client.created_at)}</div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+        <div><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--grey);">Email</div><a href="mailto:${esc(client.email)}" style="color:var(--white);text-decoration:none;">${esc(client.email)}</a></div>
+        <div><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--grey);">Telefon</div>${client.telefon ? `<a href="tel:${esc(client.telefon)}" style="color:var(--white);text-decoration:none;">${esc(client.telefon)}</a>` : '<span style="color:var(--grey);">—</span>'}</div>
+        <div><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--grey);">Lucrări finalizate</div><strong>${finalizate}</strong> din ${(rezervari ?? []).length}</div>
+        <div><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--grey);">Total facturat</div><strong>${numberFormat(totalCheltuit, 2)} lei</strong></div>
+      </div>
+    </div>
+
+    <div class="section-label">Mașini</div>
+    <div class="section-title" style="margin-bottom:1rem;">Parcul <span>auto</span></div>
+    ${masiniCards}
+
+    <div class="section-label" style="margin-top:2rem;">Istoric</div>
+    <div class="section-title" style="margin-bottom:1rem;">Lucrări la <span>service</span></div>
+    <div class="card" style="padding:0;overflow-x:auto;"><table>
+      <thead><tr><th>Data</th><th>Mașina</th><th>Serviciu</th><th>Status</th><th style="text-align:right;">Deviz</th><th></th></tr></thead>
+      <tbody>${istoricRows}</tbody>
+    </table></div>
+  </div>`;
+  return c.html(page({ title: `${esc(client.nume)} — Profil client`, user, nav: 'admin', currentPath: '/admin/clienti', body }));
+});
+
 async function renderClienti(c: AppContext, error: string, success: string) {
   const user = c.get('user')!;
   const { results: clienti } = await c.env.DB.prepare(
@@ -465,7 +548,8 @@ async function renderClienti(c: AppContext, error: string, success: string) {
         <td style="text-align:center;">${u.nr_programari}</td>
         <td style="text-align:center;">${u.nr_masini}</td>
         <td>${dRo(u.created_at)}</td>
-        <td><button class="btn btn-outline" style="padding:0.35rem 0.8rem;font-size:0.78rem;white-space:nowrap;" onclick="openReset(${u.id}, '${jsAttr(u.nume)}')">Resetează parola</button></td>
+        <td style="white-space:nowrap;"><a href="/admin/clienti/profil?id=${u.id}" class="btn btn-outline" style="padding:0.35rem 0.8rem;font-size:0.78rem;text-decoration:none;">Profil</a>
+            <button class="btn btn-outline" style="padding:0.35rem 0.8rem;font-size:0.78rem;white-space:nowrap;" onclick="openReset(${u.id}, '${jsAttr(u.nume)}')">Resetează parola</button></td>
     </tr>`).join('');
 
   const lista = (clienti ?? []).length === 0
