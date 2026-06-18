@@ -59,6 +59,7 @@ app.use('*', async (c, next) => {
     const body = original.replace('</body>', footer + chrome + '</body>');
     const headers = new Headers(c.res.headers);
     headers.delete('content-length');
+    headers.set('Cache-Control', 'private, no-cache');
     c.res = new Response(body, { status: c.res.status, statusText: c.res.statusText, headers });
   } catch {
     /* dacă apare o eroare, lăsăm pagina neschimbată */
