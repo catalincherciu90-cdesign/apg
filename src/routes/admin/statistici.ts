@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
 import type { Env, Variables, AppContext } from '../../types';
 import { page } from '../../views/layout';
-import { esc, numberFormat, serviciuLabel } from '../../lib/format';
+import { esc, numberFormat, serviciuLabel, todayRo, dateRo } from '../../lib/format';
 import { ensureDevizDecizie } from '../../lib/deviz';
+import { getSetari, setSetare } from '../../lib/setari';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -28,12 +29,36 @@ const STYLE = `<style>
     .hbar-num { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.85rem; width:36px; }
 </style>`;
 
-app.get('/statistici', async (c) => renderStatistici(c));
+app.post('/statistici', async (c) => {
+  const form = await c.req.formData();
+  const n = Math.min(168, Math.max(1, parseInt(String(form.get('ore') ?? '40'), 10) || 40));
+  await setSetare(c.env, 'ore_munca_saptamanal', String(n));
+  return renderStatistici(c, 'Orele de muncă au fost salvate.');
+});
 
-async function renderStatistici(c: AppContext) {
+app.get('/statistici', async (c) => renderStatistici(c, ''));
+
+async function renderStatistici(c: AppContext, success: string) {
   const user = c.get('user')!;
   const db = c.env.DB;
   await ensureDevizDecizie(c.env);
+  const s = await getSetari(c.env);
+  const oreCapacitate = Math.min(168, Math.max(1, parseInt(s.ore_munca_saptamanal || '40', 10) || 40));
+
+  // Ore programate săptămâna curentă (luni–duminică)
+  const aziStr = todayRo();
+  const aziD = new Date(aziStr + 'T00:00:00Z');
+  const iso = aziD.getUTCDay() === 0 ? 7 : aziD.getUTCDay();
+  const luni = new Date(aziD);
+  luni.setUTCDate(aziD.getUTCDate() - (iso - 1));
+  const dum = new Date(luni);
+  dum.setUTCDate(luni.getUTCDate() + 6);
+  const fmt = (x: Date) => x.toISOString().slice(0, 10);
+  const oreProgramate = (await db.prepare(
+    `SELECT IFNULL(SUM(durata),0) AS s FROM rezervari WHERE data BETWEEN ? AND ? AND status IN ('confirmat','in_lucru','finalizat')`,
+  ).bind(fmt(luni), fmt(dum)).first<any>())?.s ?? 0;
+  const incarcarePct = Math.round((Number(oreProgramate) / oreCapacitate) * 100);
+  const culoareInc = incarcarePct > 100 ? '#c0392b' : incarcarePct >= 80 ? '#f0a500' : '#2ecc71';
 
   const { results: statRows } = await db.prepare('SELECT status, COUNT(*) AS c FROM rezervari GROUP BY status').all<any>();
   const st: Record<string, number> = {};
@@ -78,6 +103,19 @@ async function renderStatistici(c: AppContext) {
   const body = `<div class="container" style="max-width:900px;">
     <div class="page-title">Statistici</div>
     <div class="page-subtitle">Imagine de ansamblu asupra activității</div>
+    ${success ? `<div class="alert alert-success">${esc(success)}</div>` : ''}
+
+    <div class="panel"><h3>Încărcare săptămâna curentă</h3>
+      <p style="color:var(--grey);font-size:0.85rem;margin-bottom:1rem;">${dateRo(fmt(luni))} – ${dateRo(fmt(dum))}</p>
+      <div class="hbar-row"><div class="hbar-lbl">Ore programate</div>
+        <div class="hbar-track" style="height:28px;"><div class="hbar-fill" style="width:${Math.min(100, incarcarePct)}%;background:${culoareInc};"></div></div>
+        <div class="hbar-num" style="width:auto;white-space:nowrap;color:${culoareInc};">${Number(oreProgramate)} / ${oreCapacitate} h · ${incarcarePct}%</div>
+      </div>
+      <form method="POST" style="display:flex;gap:0.8rem;align-items:flex-end;flex-wrap:wrap;margin-top:1rem;">
+        <div class="form-group" style="margin:0;width:170px;"><label>Ore de muncă / săptămână</label><input type="number" name="ore" min="1" max="168" value="${oreCapacitate}"></div>
+        <button type="submit" class="btn btn-primary btn-sm" style="margin-bottom:0;">Salvează</button>
+      </form>
+    </div>
 
     <div class="stat-grid">
       <div class="stat-box"><div class="num">${totalProg}</div><div class="lbl">Total programări</div><div class="sub">${st.asteptare ?? 0} în așteptare</div></div>
