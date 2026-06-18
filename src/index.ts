@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import type { Env, Variables } from './types';
 import { loadUser } from './lib/auth';
 import { getSetari, navVisibility } from './lib/setari';
-import { page, SITE_URL } from './views/layout';
+import { page, SITE_URL, siteFooter } from './views/layout';
 import publicRoutes, { SERVICII_SLUGS } from './routes/public';
 import authRoutes from './routes/auth';
 import clientRoutes from './routes/client';
@@ -62,8 +62,9 @@ app.use('*', async (c, next) => {
     <div id="apg-cookie"><p>Folosim cookie-uri pentru funcționarea site-ului și îmbunătățirea experienței. Detalii în <a href="/cookies">Politica de cookie-uri</a>.</p><button onclick="(function(){try{localStorage.setItem('apg_cookie_ok','1')}catch(e){}document.getElementById('apg-cookie').style.display='none';})()">Accept</button></div>
     <script>(function(){try{if(!localStorage.getItem('apg_cookie_ok')){document.getElementById('apg-cookie').style.display='flex';}}catch(e){}})();</script>`;
 
+    const footer = siteFooter(setari);
     const original = await c.res.text();
-    const body = original.replace('</body>', chrome + '</body>');
+    const body = original.replace('</body>', footer + chrome + '</body>');
     const headers = new Headers(c.res.headers);
     headers.delete('content-length');
     c.res = new Response(body, { status: c.res.status, statusText: c.res.statusText, headers });
