@@ -5,7 +5,7 @@ import { esc, nl2br, numberFormat } from '../lib/format';
 import { getSetari, paginaActiva } from '../lib/setari';
 import { notificareMesajContact, notificareCerereTractare, notificareCererePiesa } from '../lib/notificari';
 import { ensureMesaje } from '../lib/mesaje';
-import { ensureRecenzii, stele } from '../lib/recenzii';
+import { ensureRecenzii, stele, verifyReviewToken } from '../lib/recenzii';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -734,6 +734,75 @@ app.get('/cookies', async (c) => {
     <h2>Controlul cookie-urilor</h2>
     <p>Poți șterge sau bloca cookie-urile din setările browserului. Dezactivarea celor strict necesare poate afecta funcționarea site-ului.</p>`;
   return c.html(page({ title: 'Politica de cookie-uri — APG Garage', user: c.get('user'), nav: 'public', pagini: c.get('pagini'), path: '/cookies', description: 'Politica de cookie-uri APG Garage.', headExtra: LEGAL_STYLE, body: legalPage('Politica de <span>cookie-uri</span>', 'Cum folosim cookie-urile', continut) }));
+});
+
+/* ============================ RECENZIE CLIENT (din email) ============================ */
+const RECENZIE_STYLE = `<style>
+    ${HERO_SMALL}
+    .rec-wrap { max-width:560px; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
+    .stars-input { display:inline-flex; flex-direction:row-reverse; gap:6px; }
+    .stars-input input { display:none; }
+    .stars-input label { font-size:2.4rem; color:#3a3a3a; cursor:pointer; transition:color .12s; line-height:1; }
+    .stars-input label:hover, .stars-input label:hover ~ label,
+    .stars-input input:checked + label, .stars-input input:checked + label ~ label { color:#f0a500; }
+</style>`;
+
+app.get('/recenzie', async (c) => {
+  const rid = parseInt(c.req.query('rid') ?? '0', 10);
+  const t = c.req.query('t') ?? '';
+  const ok = c.req.query('ok') !== undefined;
+  const valid = rid && (await verifyReviewToken(c.env, rid, t));
+
+  let inner: string;
+  if (!valid) {
+    inner = `<div class="rec-wrap" style="text-align:center;"><p style="color:var(--grey);">Link invalid sau expirat. Dacă vrei să ne lași o părere, contactează-ne direct.</p><a href="/" class="btn btn-primary">Acasă</a></div>`;
+  } else if (ok) {
+    inner = `<div class="rec-wrap" style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:0.5rem;">✓</div>
+      <h2 style="font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:1px;">Mulțumim!</h2>
+      <p style="color:var(--grey-light);line-height:1.7;">Recenzia ta a fost trimisă și va fi publicată după o scurtă verificare. Îți mulțumim că ne-ai ajutat!</p>
+      <a href="/" class="btn btn-primary">Înapoi la site</a></div>`;
+  } else {
+    const rez = await c.env.DB.prepare('SELECT u.nume FROM rezervari r JOIN users u ON u.id = r.user_id WHERE r.id = ?').bind(rid).first<any>();
+    const nume = rez?.nume ?? '';
+    inner = `<div class="rec-wrap">
+      <form method="POST" action="/recenzie">
+        <input type="hidden" name="rid" value="${rid}"><input type="hidden" name="t" value="${esc(t)}">
+        <div class="form-group"><label>Numele tău</label><input type="text" name="nume" value="${esc(nume)}" required></div>
+        <div class="form-group"><label>Rating</label><br>
+          <div class="stars-input">
+            <input type="radio" id="s5" name="rating" value="5" checked><label for="s5">★</label>
+            <input type="radio" id="s4" name="rating" value="4"><label for="s4">★</label>
+            <input type="radio" id="s3" name="rating" value="3"><label for="s3">★</label>
+            <input type="radio" id="s2" name="rating" value="2"><label for="s2">★</label>
+            <input type="radio" id="s1" name="rating" value="1"><label for="s1">★</label>
+          </div>
+        </div>
+        <div class="form-group"><label>Părerea ta</label><textarea name="text" rows="5" placeholder="Cum a fost experiența la APG Garage?" required></textarea></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Trimite recenzia</button>
+      </form>
+    </div>`;
+  }
+  const body = `<section class="hero-small"><div class="section-label">Părerea ta contează</div>
+    <div class="page-title">Lasă o <span>recenzie</span></div>
+    <div class="page-subtitle">Spune-ne cum a fost experiența ta la APG Garage</div></section>${inner}`;
+  return c.html(page({ title: 'Lasă o recenzie — APG Garage', user: c.get('user'), nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: RECENZIE_STYLE, body }));
+});
+
+app.post('/recenzie', async (c) => {
+  const form = await c.req.formData();
+  const rid = parseInt(String(form.get('rid') ?? '0'), 10);
+  const t = String(form.get('t') ?? '');
+  if (!rid || !(await verifyReviewToken(c.env, rid, t))) return c.redirect('/');
+  const nume = String(form.get('nume') ?? '').trim().slice(0, 80);
+  const text = String(form.get('text') ?? '').trim().slice(0, 1000);
+  const rating = Math.max(1, Math.min(5, parseInt(String(form.get('rating') ?? '5'), 10) || 5));
+  if (nume && text) {
+    await ensureRecenzii(c.env);
+    // activ = 0: recenzia așteaptă aprobarea adminului înainte de publicare
+    await c.env.DB.prepare('INSERT INTO recenzii (nume, rating, text, activ, ordine) VALUES (?, ?, ?, 0, 0)').bind(nume, rating, text).run();
+  }
+  return c.redirect(`/recenzie?rid=${rid}&t=${encodeURIComponent(t)}&ok=1`);
 });
 
 export default app;

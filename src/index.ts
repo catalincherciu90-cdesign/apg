@@ -75,7 +75,7 @@ app.use('*', async (c, next) => {
 // SEO: robots.txt + sitemap.xml
 app.get('/robots.txt', (c) =>
   c.text(
-    `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /dashboard\nDisallow: /masini\nDisallow: /rezervare\nDisallow: /deviz\nDisallow: /login\nDisallow: /register\nDisallow: /logout\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
+    `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /dashboard\nDisallow: /masini\nDisallow: /rezervare\nDisallow: /deviz\nDisallow: /recenzie\nDisallow: /login\nDisallow: /register\nDisallow: /logout\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
   ),
 );
 app.get('/sitemap.xml', (c) => {
