@@ -17,28 +17,45 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // Tot panoul de admin cere rol de angajat
 app.use('*', requireAngajat);
 
-// Badge cu nr. de mesaje necitite pe butonul „Admin" din meniu (doar super-admin).
-// Injectat în HTML după randare, ca să nu modificăm toate apelurile page().
+// Badge-uri în meniu (injectate în HTML după randare, ca să nu modificăm
+// toate apelurile page()):
+//  - „Programări": nr. de programări în așteptare (pentru oricine vede meniul)
+//  - „Mesaje": nr. de mesaje necitite (doar super-admin)
 app.use('*', async (c, next) => {
   await next();
   const user = c.get('user');
-  if (!isSuperAdmin(user)) return;
+  if (!user) return;
   if (!(c.res.headers.get('content-type') ?? '').includes('text/html')) return;
   try {
-    await ensureMesaje(c.env);
-    const row = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM mesaje WHERE citit = 0').first<{ n: number }>();
-    const n = row?.n ?? 0;
-    if (!n) return;
-    const original = await c.res.text();
-    const badge = `<span class="admin-badge">${n}</span>`;
-    const body = original
-      .replace('id="nav-mesaje" style="text-decoration:none;">Mesaje</a>', `id="nav-mesaje" style="text-decoration:none;">Mesaje ${badge}</a>`)
-      .replace('<a href="/admin/mesaje">Mesaje</a>', `<a href="/admin/mesaje">Mesaje ${badge}</a>`);
+    let progBadge = '';
+    let msgBadge = '';
+
+    const pr = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM rezervari WHERE status = 'asteptare'").first<{ n: number }>();
+    if (pr?.n) progBadge = `<span class="admin-badge">${pr.n}</span>`;
+
+    if (isSuperAdmin(user)) {
+      await ensureMesaje(c.env);
+      const mr = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM mesaje WHERE citit = 0').first<{ n: number }>();
+      if (mr?.n) msgBadge = `<span class="admin-badge">${mr.n}</span>`;
+    }
+
+    if (!progBadge && !msgBadge) return;
+    let body = await c.res.text();
+    if (progBadge) {
+      body = body
+        .replace('>Programări <span class="arrow">▾</span>', `>Programări ${progBadge} <span class="arrow">▾</span>`)
+        .replace('<a href="/admin">Toate programările</a>', `<a href="/admin">Toate programările ${progBadge}</a>`);
+    }
+    if (msgBadge) {
+      body = body
+        .replace('id="nav-mesaje" style="text-decoration:none;">Mesaje</a>', `id="nav-mesaje" style="text-decoration:none;">Mesaje ${msgBadge}</a>`)
+        .replace('<a href="/admin/mesaje">Mesaje</a>', `<a href="/admin/mesaje">Mesaje ${msgBadge}</a>`);
+    }
     const headers = new Headers(c.res.headers);
     headers.delete('content-length');
     c.res = new Response(body, { status: c.res.status, statusText: c.res.statusText, headers });
   } catch {
-    /* dacă tabela lipsește sau apare o eroare, lăsăm pagina neschimbată */
+    /* dacă apare o eroare, lăsăm pagina neschimbată */
   }
 });
 
