@@ -13,11 +13,11 @@ export const SETARI_DEFAULT: Record<string, string> = {
   home_clienti: '500+',
   home_timp_revizie: '2h',
   // Despre
-  despre_titlu: 'Despre APG Garage',
-  despre_descriere: 'Un service auto cu experiență, dedicat calității și transparenței.',
-  despre_text_1: '',
-  despre_text_2: '',
-  despre_text_3: '',
+  despre_titlu: 'Pasiune pentru mașini, grijă pentru oameni',
+  despre_descriere: 'Un service auto construit din pasiune pentru mașini și respect pentru oamenii care le conduc.',
+  despre_text_1: 'APG Garage s-a născut dintr-o pasiune sinceră pentru mașini. Pentru noi, fiecare mașină care intră în service nu este doar o lucrare — este vehiculul în care ai încredere zi de zi, mașina care îți duce familia în siguranță. De aceea o tratăm cu aceeași grijă cu care ne-am îngriji propria mașină.',
+  despre_text_2: 'Devotamentul nostru se vede în detalii: diagnosticăm corect înainte să intervenim, folosim piese de calitate și nu ne oprim până când lucrarea nu este făcută exact așa cum trebuie. Nu căutăm scurtături, ci soluții durabile. Pasiunea pentru mecanică ne ține mereu conectați la cele mai noi tehnologii și metode de reparație.',
+  despre_text_3: 'Credem în relații pe termen lung, bazate pe încredere și transparență. Îți explicăm clar ce are mașina, cât costă și de ce, fără surprize neplăcute. Mulți dintre clienții noștri revin de ani de zile și ne recomandă mai departe — iar pentru noi, aceasta este cea mai frumoasă confirmare că ne facem treaba din suflet.',
   // Contact
   contact_adresa: 'Strada Exemplu, Nr. 00, București',
   contact_telefon: '0700 000 000',
