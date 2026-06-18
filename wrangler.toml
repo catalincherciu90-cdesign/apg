@@ -23,7 +23,8 @@ crons = ["0 9 * * *"]
 SITE_NAME = "APG Garage"
 BASE_URL = "https://apg-garage.ro"
 MAIL_FROM = "APG Garage <notificari@apg-garage.ro>"
-MAIL_ADMIN = "contact@apg-garage.ro"
+MAIL_ADMIN = "notificari.apggarage@gmail.com"
+MAIL_REPLY_TO = "notificari.apggarage@gmail.com"
 
 # Secrete (a se seta cu `wrangler secret put`):
 #   SESSION_SECRET   — cheie pentru semnarea cookie-urilor de sesiune
