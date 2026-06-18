@@ -12,6 +12,7 @@ import general from './admin/general';
 import mesaje from './admin/mesaje';
 import notificari from './admin/notificari';
 import recenzii from './admin/recenzii';
+import statistici from './admin/statistici';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -71,6 +72,7 @@ app.use('/clienti/profil', requireSuperAdmin);
 app.use('/mesaje', requireSuperAdmin);
 app.use('/notificari', requireSuperAdmin);
 app.use('/recenzii', requireSuperAdmin);
+app.use('/statistici', requireSuperAdmin);
 app.use('/angajati', requireSuperAdmin);
 app.use('/setari', requireSuperAdmin);
 app.use('/contact', requireSuperAdmin);
@@ -86,5 +88,6 @@ app.route('/', general); // /admin/angajati, /admin/setari, /admin/contact, /adm
 app.route('/', mesaje); // /admin/mesaje
 app.route('/', notificari); // /admin/notificari
 app.route('/', recenzii); // /admin/recenzii
+app.route('/', statistici); // /admin/statistici
 
 export default app;
