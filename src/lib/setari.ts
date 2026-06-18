@@ -29,6 +29,8 @@ export const SETARI_DEFAULT: Record<string, string> = {
   whatsapp_numar: '',
   firma_cui: '',
   firma_reg_com: '',
+  firma_geo_lat: '',
+  firma_geo_lng: '',
   // Tractari
   tractari_activ: '1',
   tractari_telefon: '',

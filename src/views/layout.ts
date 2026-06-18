@@ -87,8 +87,8 @@ ${opts.bodyEnd ?? ''}
 // Port din src/views/nav.php (URL-uri curate)
 export function navPublic(user: SessionUser | null, pagini?: Record<string, boolean>): string {
   const vis = (key: string) => !pagini || pagini[key] !== false;
-  const pubLinks = `${vis('despre') ? '<a href="/despre">Despre noi</a>' : ''}${vis('preturi') ? '<a href="/preturi">Prețuri</a>' : ''}${vis('tractari') ? '<a href="/tractari">Tractări</a>' : ''}${vis('dezmembrari') ? '<a href="/dezmembrari">Dezmembrări</a>' : ''}${vis('contact') ? '<a href="/contact">Contact</a>' : ''}`;
-  const pubMobile = `${vis('despre') ? '<a href="/despre">Despre noi</a>' : ''}${vis('preturi') ? '<a href="/preturi">Prețuri</a>' : ''}${vis('tractari') ? '<a href="/tractari">Tractări auto</a>' : ''}${vis('dezmembrari') ? '<a href="/dezmembrari">Piese dezmembrări</a>' : ''}${vis('contact') ? '<a href="/contact">Contact</a>' : ''}`;
+  const pubLinks = `<a href="/servicii">Servicii</a>${vis('despre') ? '<a href="/despre">Despre noi</a>' : ''}${vis('preturi') ? '<a href="/preturi">Prețuri</a>' : ''}${vis('tractari') ? '<a href="/tractari">Tractări</a>' : ''}${vis('dezmembrari') ? '<a href="/dezmembrari">Dezmembrări</a>' : ''}${vis('contact') ? '<a href="/contact">Contact</a>' : ''}`;
+  const pubMobile = `<a href="/servicii">Servicii</a>${vis('despre') ? '<a href="/despre">Despre noi</a>' : ''}${vis('preturi') ? '<a href="/preturi">Prețuri</a>' : ''}${vis('tractari') ? '<a href="/tractari">Tractări auto</a>' : ''}${vis('dezmembrari') ? '<a href="/dezmembrari">Piese dezmembrări</a>' : ''}${vis('contact') ? '<a href="/contact">Contact</a>' : ''}`;
   let links = '';
   let mobile = '';
   if (user) {

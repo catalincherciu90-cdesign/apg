@@ -198,7 +198,7 @@ async function renderAngajati(c: AppContext, error: string, success: string) {
 }
 
 /* ============================ DATE CONTACT ============================ */
-const CONTACT_KEYS = ['contact_adresa', 'contact_telefon', 'contact_email', 'contact_program_sapt', 'contact_program_ore', 'contact_maps_url', 'whatsapp_numar', 'firma_cui', 'firma_reg_com'];
+const CONTACT_KEYS = ['contact_adresa', 'contact_telefon', 'contact_email', 'contact_program_sapt', 'contact_program_ore', 'contact_maps_url', 'whatsapp_numar', 'firma_cui', 'firma_reg_com', 'firma_geo_lat', 'firma_geo_lng'];
 
 app.post('/contact', async (c) => {
   const form = await c.req.formData();
@@ -255,6 +255,11 @@ async function renderContact(c: AppContext, success: string) {
         </div>
         <div class="card"><div class="card-label" style="${labelStyle}">Google Maps</div>
             <div class="form-group"><label>URL embed Google Maps</label><input type="text" name="contact_maps_url" value="${esc(s.contact_maps_url)}" placeholder="https://www.google.com/maps/embed?pb=..." id="maps-url-input" oninput="updateMapsPreview(this.value)"><div class="hint">Mergi pe Google Maps → caută adresa → Share → Embed a map → copiază URL-ul din src="..."</div></div>
+            <div class="fg2">
+                <div class="form-group"><label>Latitudine (GPS)</label><input type="text" name="firma_geo_lat" value="${esc(s.firma_geo_lat)}" placeholder="ex: 44.4268"></div>
+                <div class="form-group"><label>Longitudine (GPS)</label><input type="text" name="firma_geo_lng" value="${esc(s.firma_geo_lng)}" placeholder="ex: 26.1025"></div>
+            </div>
+            <div class="hint">Coordonatele apar în datele structurate (SEO local). Pe Google Maps: click dreapta pe locație → primul rând copiază lat, lng.</div>
             <div id="maps-preview-wrap">${harta}</div>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Salvează datele de contact</button>
