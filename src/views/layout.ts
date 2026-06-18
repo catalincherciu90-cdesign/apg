@@ -151,9 +151,9 @@ export function navAdmin(user: SessionUser | null, current: string): string {
   }
   if (isSuper) {
     groups += `<div class="nav-dropdown"><a href="/admin/mesaje" class="nav-dropdown-btn ${current === '/admin/mesaje' ? 'active' : ''}" id="nav-mesaje" style="text-decoration:none;">Mesaje</a></div>`;
-    groups += `<div class="nav-dropdown"><button class="nav-dropdown-btn ${act(['/admin/clienti', '/admin/angajati', '/admin/notificari', '/admin/setari', '/admin/contact', '/admin/continut'])}">Admin <span class="arrow">▾</span></button><div class="nav-dropdown-menu">${a('/admin/clienti', 'Clienți')}${a('/admin/angajati', 'Angajați & Permisiuni')}${a('/admin/notificari', 'Notificări')}${a('/admin/setari', 'Setări site')}${a('/admin/contact', 'Date contact')}${a('/admin/continut', 'Conținut site')}</div></div>`;
+    groups += `<div class="nav-dropdown"><button class="nav-dropdown-btn ${act(['/admin/clienti', '/admin/angajati', '/admin/notificari', '/admin/recenzii', '/admin/setari', '/admin/contact', '/admin/continut'])}">Admin <span class="arrow">▾</span></button><div class="nav-dropdown-menu">${a('/admin/clienti', 'Clienți')}${a('/admin/angajati', 'Angajați & Permisiuni')}${a('/admin/recenzii', 'Recenzii')}${a('/admin/notificari', 'Notificări')}${a('/admin/setari', 'Setări site')}${a('/admin/contact', 'Date contact')}${a('/admin/continut', 'Conținut site')}</div></div>`;
     mobile += `<a href="/admin/mesaje">Mesaje</a>`;
-    mobile += `<div class="admin-mob-group">Administrare</div><a href="/admin/clienti">Clienți</a><a href="/admin/angajati">Angajați & Permisiuni</a><a href="/admin/notificari">Notificări</a><a href="/admin/setari">Setări site</a><a href="/admin/contact">Date contact</a><a href="/admin/continut">Conținut site</a>`;
+    mobile += `<div class="admin-mob-group">Administrare</div><a href="/admin/clienti">Clienți</a><a href="/admin/angajati">Angajați & Permisiuni</a><a href="/admin/recenzii">Recenzii</a><a href="/admin/notificari">Notificări</a><a href="/admin/setari">Setări site</a><a href="/admin/contact">Date contact</a><a href="/admin/continut">Conținut site</a>`;
   }
 
   return `<nav id="admin-nav">
