@@ -49,6 +49,8 @@ export const SETARI_DEFAULT: Record<string, string> = {
   notif_admin_emails: 'notificari.apggarage@gmail.com',
   // Interval (luni) după care se trimite reminder pentru verificarea de rampă
   rampa_interval_luni: '24',
+  // Ore de muncă disponibile pe săptămână (pentru indicatorul de încărcare)
+  ore_munca_saptamanal: '40',
 };
 
 // Pagini informative care pot fi activate/dezactivate din admin (Setări site).
