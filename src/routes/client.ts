@@ -286,7 +286,14 @@ async function renderMasini(c: AppContext, error: string, success: string) {
 
 /* ============================ REZERVARE ============================ */
 async function getSloturiDisponibile(env: Env, data: string, durata: number): Promise<string[]> {
-  let allSlots = durata === 4 ? ['09:00', '13:00'] : ['09:00', '11:00', '13:00', '15:00'];
+  const toMin = (hhmm: string) => {
+    const [h, m] = hhmm.slice(0, 5).split(':').map(Number);
+    return h * 60 + m;
+  };
+  // Program 09:00–17:00; sloturi din 2 în 2 ore. Un slot e valid dacă lucrarea
+  // (de orice durată) se încadrează până la închidere.
+  const ZIUA_END = 17 * 60;
+  const allSlots = ['09:00', '11:00', '13:00', '15:00'].filter((s) => toMin(s) + durata * 60 <= ZIUA_END);
 
   const blocat = await env.DB.prepare('SELECT id FROM zile_blocate WHERE data = ?').bind(data).first();
   if (blocat) return [];
@@ -301,11 +308,6 @@ async function getSloturiDisponibile(env: Env, data: string, durata: number): Pr
   const { results: ocupate } = await env.DB.prepare(
     `SELECT ora_start, durata FROM rezervari WHERE data = ? AND status IN ('asteptare','confirmat','in_lucru')`,
   ).bind(data).all<{ ora_start: string; durata: number }>();
-
-  const toMin = (hhmm: string) => {
-    const [h, m] = hhmm.slice(0, 5).split(':').map(Number);
-    return h * 60 + m;
-  };
 
   return allSlots.filter((slot) => {
     const sStart = toMin(slot);
@@ -324,7 +326,7 @@ app.get('/rezervare', async (c) => {
   // AJAX sloturi
   if (c.req.query('ajax_slots') !== undefined) {
     const data = c.req.query('data') ?? '';
-    const durata = parseInt(c.req.query('durata') ?? '2', 10);
+    const durata = Math.min(24, Math.max(0.5, parseFloat(c.req.query('durata') ?? '2') || 2));
     if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return c.json([]);
     return c.json(await getSloturiDisponibile(c.env, data, durata));
   }
@@ -338,14 +340,14 @@ app.post('/rezervare', async (c) => {
   const descriere = String(form.get('descriere') ?? '').trim();
   const data = String(form.get('data') ?? '');
   const ora = String(form.get('ora_start') ?? '');
-  const durata = parseInt(String(form.get('durata') ?? '2'), 10);
+  const durata = Math.min(24, Math.max(0.5, parseFloat(String(form.get('durata') ?? '2')) || 2));
   const nr = String(form.get('nr_inmatriculare') ?? '').trim().toUpperCase();
   const producator = String(form.get('producator') ?? '').trim();
   const model = String(form.get('model') ?? '').trim();
   const vals = { serviciu_tip: serviciu, descriere, nr_inmatriculare: nr, producator, model, durata: String(durata) };
 
   let error = '';
-  if (!serviciu || !data || !ora || ![2, 4].includes(durata)) {
+  if (!serviciu || !data || !ora || !(durata >= 0.5)) {
     error = 'Completează toate câmpurile obligatorii.';
   } else if (!nr || !producator || !model) {
     error = 'Completează datele mașinii (număr înmatriculare, producător, model).';
@@ -404,10 +406,10 @@ async function renderRezervare(c: AppContext, error: string, success: boolean, v
   const user = c.get('user')!;
   const sel = (name: string, val: string) => ((v[name] ?? (name === 'durata' ? '2' : '')) === val ? 'selected' : '');
   // Serviciile vin din Admin → Servicii (active). Dacă lista e goală, folosim variantele implicite.
-  const { results: servicii } = await c.env.DB.prepare('SELECT nume FROM servicii WHERE activ = 1 ORDER BY ordine ASC, id ASC').all<{ nume: string }>();
+  const { results: servicii } = await c.env.DB.prepare('SELECT nume, durata_ore FROM servicii WHERE activ = 1 ORDER BY ordine ASC, id ASC').all<{ nume: string; durata_ore: number }>();
   const optServicii = (servicii && servicii.length)
-    ? servicii.map((s) => `<option value="${esc(s.nume)}" ${sel('serviciu_tip', s.nume)}>${esc(s.nume)}</option>`).join('')
-    : `<option value="revizie" ${sel('serviciu_tip', 'revizie')}>Revizie</option><option value="reparatie" ${sel('serviciu_tip', 'reparatie')}>Reparație mecanică</option><option value="verificare_rampa" ${sel('serviciu_tip', 'verificare_rampa')}>Verificare rampă</option>`;
+    ? servicii.map((s) => `<option value="${esc(s.nume)}" data-durata="${s.durata_ore || 2}" ${sel('serviciu_tip', s.nume)}>${esc(s.nume)}</option>`).join('')
+    : `<option value="revizie" data-durata="2" ${sel('serviciu_tip', 'revizie')}>Revizie</option><option value="reparatie" data-durata="2" ${sel('serviciu_tip', 'reparatie')}>Reparație mecanică</option><option value="verificare_rampa" data-durata="1" ${sel('serviciu_tip', 'verificare_rampa')}>Verificare rampă</option>`;
   // Mașinile salvate ale clientului — pentru completare automată
   const { results: masiniMele } = await c.env.DB.prepare('SELECT id, nr_inmatriculare, producator, model FROM masini WHERE user_id = ? ORDER BY created_at DESC').bind(user.uid).all<any>();
   const masinaSelect = (masiniMele && masiniMele.length)
@@ -443,10 +445,7 @@ async function renderRezervare(c: AppContext, error: string, success: boolean, v
                     <option value="">Alege...</option>
                     ${optServicii}
                 </select></div>
-                <div class="form-group"><label>Durată estimată *</label><select name="durata" id="durata" required>
-                    <option value="2" ${sel('durata', '2')}>2 ore</option>
-                    <option value="4" ${sel('durata', '4')}>4 ore (zi întreagă)</option>
-                </select></div>
+                <div class="form-group"><label>Durată estimată (ore) *</label><input type="number" name="durata" id="durata" min="0.5" max="24" step="0.5" value="${esc(v.durata ?? '2')}" required><div style="font-size:0.75rem;color:var(--grey);margin-top:0.3rem;">Se completează automat din serviciu, dar o poți ajusta.</div></div>
                 <div class="form-group"><label>Descriere problemă</label><textarea name="descriere" placeholder="Descrie pe scurt problema sau lucrarea dorită...">${esc(v.descriere ?? '')}</textarea></div>
             </div></div>
             <div>
@@ -463,7 +462,8 @@ async function renderRezervare(c: AppContext, error: string, success: boolean, v
         </div>
     </form>
   </div>`;
-  const bodyEnd = `<script>${REZ_SCRIPT}</script><script>(function(){var s=document.getElementById('masina-select');if(!s)return;s.addEventListener('change',function(){var o=this.options[this.selectedIndex];if(!o||!o.value)return;function set(n,v){var el=document.querySelector('[name="'+n+'"]');if(el)el.value=v||'';}set('nr_inmatriculare',o.getAttribute('data-nr'));set('producator',o.getAttribute('data-prod'));set('model',o.getAttribute('data-model'));});})();</script>`;
+  const bodyEnd = `<script>${REZ_SCRIPT}</script><script>(function(){var s=document.getElementById('masina-select');if(!s)return;s.addEventListener('change',function(){var o=this.options[this.selectedIndex];if(!o||!o.value)return;function set(n,v){var el=document.querySelector('[name="'+n+'"]');if(el)el.value=v||'';}set('nr_inmatriculare',o.getAttribute('data-nr'));set('producator',o.getAttribute('data-prod'));set('model',o.getAttribute('data-model'));});})();
+(function(){var sv=document.getElementById('serviciu_tip'),d=document.getElementById('durata');if(!sv||!d)return;sv.addEventListener('change',function(){var o=this.options[this.selectedIndex];var dd=o&&o.getAttribute('data-durata');if(dd){d.value=dd;try{d.dispatchEvent(new Event('change'));}catch(e){}}});})();</script>`;
   return c.html(page({ title: 'Programare nouă — APG Garage', user, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: REZ_STYLE, body, bodyEnd }));
 }
 
