@@ -4,6 +4,7 @@ import { requireClient } from '../lib/auth';
 import { page } from '../views/layout';
 import { esc, numberFormat, dateRo, timeShort, nl2br, serviciuLabel, STATUS_LABEL, todayRo, diffDays } from '../lib/format';
 import { notificareProgramareNoua } from '../lib/mailer';
+import { getSetari } from '../lib/setari';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // Restrâns la rutele client (un `use('*')` ar deveni global când e montat la `/`)
@@ -290,6 +291,9 @@ async function getSloturiDisponibile(env: Env, data: string, durata: number): Pr
   const iso = dow === 0 ? 7 : dow;
   if (iso >= 6) return [];
 
+  // Câte mașini pot fi în lucru simultan (capacitate service)
+  const capacitate = Math.max(1, parseInt((await getSetari(env)).capacitate_simultan || '1', 10) || 1);
+
   const { results: ocupate } = await env.DB.prepare(
     `SELECT ora_start, durata FROM rezervari WHERE data = ? AND status IN ('asteptare','confirmat','in_lucru')`,
   ).bind(data).all<{ ora_start: string; durata: number }>();
@@ -302,12 +306,13 @@ async function getSloturiDisponibile(env: Env, data: string, durata: number): Pr
   return allSlots.filter((slot) => {
     const sStart = toMin(slot);
     const sEnd = sStart + durata * 60;
+    let suprapuneri = 0;
     for (const rez of ocupate ?? []) {
       const rStart = toMin(rez.ora_start);
       const rEnd = rStart + rez.durata * 60;
-      if (sStart < rEnd && sEnd > rStart) return false;
+      if (sStart < rEnd && sEnd > rStart) suprapuneri++;
     }
-    return true;
+    return suprapuneri < capacitate;
   });
 }
 

@@ -140,3 +140,28 @@ export async function notificareDevizNou(env: Env, email: string, nr: string, re
     <a href="${env.BASE_URL}/deviz?rezervare_id=${rezervareId}" class="btn">Vezi devizul</a>`;
   await trimiteEmail(env, email, 'Deviz nou disponibil — APG Garage', emailTemplate('Ai un deviz nou', continut));
 }
+
+export async function notificareReminderProgramare(
+  env: Env,
+  email: string,
+  nume: string,
+  nr: string,
+  producator: string,
+  model: string,
+  serviciu: string,
+  data: string,
+  ora: string,
+) {
+  const serviciuText = SERVICII[serviciu] ?? serviciu;
+  const [y, m, d] = String(data).slice(0, 10).split('-');
+  const continut = `
+    <p>Bună, <strong>${esc(nume)}</strong>! Îți reamintim că ai o programare la APG Garage <strong>mâine</strong>.</p>
+    <table class="info-table">
+      <tr><td>Mașina</td><td>${esc(nr)} — ${esc(producator + ' ' + model)}</td></tr>
+      <tr><td>Serviciu</td><td>${serviciuText}</td></tr>
+      <tr><td>Data</td><td>${d}.${m}.${y} ora ${String(ora).slice(0, 5)}</td></tr>
+    </table>
+    <p>Te așteptăm! Dacă nu mai poți ajunge, te rugăm să ne anunți.</p>
+    <a href="${env.BASE_URL}/dashboard" class="btn">Vezi programarea</a>`;
+  await trimiteEmail(env, email, 'Reminder programare mâine — APG Garage', emailTemplate('Programarea ta este mâine', continut));
+}
