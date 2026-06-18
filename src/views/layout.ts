@@ -141,8 +141,10 @@ export function navAdmin(user: SessionUser | null, current: string): string {
     mobile += `<div class="admin-mob-group">Dezmembrări</div><a href="/admin/dezmembrari">Mașini dezmembrate</a><a href="/admin/cereri-piese">Cereri piese</a>`;
   }
   if (isSuper) {
-    groups += `<div class="nav-dropdown"><button class="nav-dropdown-btn ${act(['/admin/mesaje', '/admin/clienti', '/admin/angajati', '/admin/setari', '/admin/contact', '/admin/continut'])}">Admin <span class="arrow">▾</span></button><div class="nav-dropdown-menu">${a('/admin/mesaje', 'Mesaje')}${a('/admin/clienti', 'Clienți')}${a('/admin/angajati', 'Angajați & Permisiuni')}${a('/admin/setari', 'Setări site')}${a('/admin/contact', 'Date contact')}${a('/admin/continut', 'Conținut site')}</div></div>`;
-    mobile += `<div class="admin-mob-group">Administrare</div><a href="/admin/mesaje">Mesaje</a><a href="/admin/clienti">Clienți</a><a href="/admin/angajati">Angajați & Permisiuni</a><a href="/admin/setari">Setări site</a><a href="/admin/contact">Date contact</a><a href="/admin/continut">Conținut site</a>`;
+    groups += `<div class="nav-dropdown"><a href="/admin/mesaje" class="nav-dropdown-btn ${current === '/admin/mesaje' ? 'active' : ''}" id="nav-mesaje" style="text-decoration:none;">Mesaje</a></div>`;
+    groups += `<div class="nav-dropdown"><button class="nav-dropdown-btn ${act(['/admin/clienti', '/admin/angajati', '/admin/setari', '/admin/contact', '/admin/continut'])}">Admin <span class="arrow">▾</span></button><div class="nav-dropdown-menu">${a('/admin/clienti', 'Clienți')}${a('/admin/angajati', 'Angajați & Permisiuni')}${a('/admin/setari', 'Setări site')}${a('/admin/contact', 'Date contact')}${a('/admin/continut', 'Conținut site')}</div></div>`;
+    mobile += `<a href="/admin/mesaje">Mesaje</a>`;
+    mobile += `<div class="admin-mob-group">Administrare</div><a href="/admin/clienti">Clienți</a><a href="/admin/angajati">Angajați & Permisiuni</a><a href="/admin/setari">Setări site</a><a href="/admin/contact">Date contact</a><a href="/admin/continut">Conținut site</a>`;
   }
 
   return `<nav id="admin-nav">
