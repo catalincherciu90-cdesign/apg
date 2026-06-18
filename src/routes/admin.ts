@@ -31,7 +31,7 @@ app.use('*', async (c, next) => {
     const original = await c.res.text();
     const badge = `<span class="admin-badge">${n}</span>`;
     const body = original
-      .replace('>Admin <span class="arrow">▾</span>', `>Admin ${badge} <span class="arrow">▾</span>`)
+      .replace('id="nav-mesaje" style="text-decoration:none;">Mesaje</a>', `id="nav-mesaje" style="text-decoration:none;">Mesaje ${badge}</a>`)
       .replace('<a href="/admin/mesaje">Mesaje</a>', `<a href="/admin/mesaje">Mesaje ${badge}</a>`);
     const headers = new Headers(c.res.headers);
     headers.delete('content-length');
