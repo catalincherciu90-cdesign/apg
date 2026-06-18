@@ -3,7 +3,8 @@ import type { Env, Variables, AppContext } from '../types';
 import { requireClient } from '../lib/auth';
 import { page } from '../views/layout';
 import { esc, numberFormat, dateRo, timeShort, nl2br, serviciuLabel, STATUS_LABEL, todayRo, diffDays } from '../lib/format';
-import { notificareProgramareNoua } from '../lib/notificari';
+import { notificareProgramareNoua, notificareDevizDecizie } from '../lib/notificari';
+import { ensureDevizDecizie } from '../lib/deviz';
 import { getSetari } from '../lib/setari';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -529,6 +530,7 @@ app.get('/deviz', async (c) => {
 
   const rezervare = await c.env.DB.prepare('SELECT r.*, u.nume as client_nume FROM rezervari r JOIN users u ON u.id = r.user_id WHERE r.id = ? AND r.user_id = ?').bind(rezervareId, user.uid).first<any>();
   if (!rezervare) return c.redirect('/dashboard');
+  await ensureDevizDecizie(c.env);
   const deviz = await c.env.DB.prepare(`SELECT * FROM devize WHERE rezervare_id = ? AND status = 'trimis'`).bind(rezervareId).first<any>();
   if (!deviz) return c.redirect('/dashboard');
   const { results: randuri } = await c.env.DB.prepare('SELECT * FROM deviz_randuri WHERE deviz_id = ? ORDER BY tip, categorie, id').bind(deviz.id).all<any>();
@@ -547,6 +549,19 @@ app.get('/deviz', async (c) => {
         </tbody></table></div>` : '';
   const obs = deviz.observatii ? `<div class="obs-box"><div class="obs-label">Observații</div>${nl2br(deviz.observatii)}</div>` : '';
 
+  const decizieBox = deviz.decizie === 'aprobat'
+    ? `<div style="background:rgba(46,204,113,0.1);border:1px solid #1e8449;border-left:4px solid #2ecc71;padding:1rem 1.2rem;margin-bottom:1.5rem;color:#2ecc71;font-weight:600;">✓ Ai aprobat acest deviz${deviz.decizie_data ? ' pe ' + dateRo(deviz.decizie_data) : ''}. Îți mulțumim! Te așteptăm la service.</div>`
+    : deviz.decizie === 'respins'
+    ? `<div style="background:rgba(192,57,43,0.1);border:1px solid #922;border-left:4px solid var(--red);padding:1rem 1.2rem;margin-bottom:1.5rem;color:#e74c3c;font-weight:600;">Ai respins acest deviz${deviz.decizie_data ? ' pe ' + dateRo(deviz.decizie_data) : ''}. Dacă te-ai răzgândit, sună-ne.</div>`
+    : `<div style="background:var(--dark2);border:1px solid var(--border);border-top:3px solid var(--red);padding:1.3rem 1.5rem;margin-bottom:1.5rem;">
+        <p style="margin:0 0 1rem;color:var(--white);font-weight:600;">Ești de acord cu acest deviz? Confirmă ca să programăm lucrarea.</p>
+        <form method="POST" style="display:flex;gap:1rem;flex-wrap:wrap;">
+          <input type="hidden" name="rezervare_id" value="${rezervareId}">
+          <button type="submit" name="actiune" value="aproba" class="btn btn-primary" onclick="return confirm('Aprobi devizul?')">✓ Aprob devizul</button>
+          <button type="submit" name="actiune" value="respinge" class="btn btn-outline" onclick="return confirm('Respingi devizul?')">Resping</button>
+        </form>
+      </div>`;
+
   const body = `<div class="container"><div class="deviz-wrap">
     <div class="page-title">Devizul <span>tău</span></div>
     <div class="page-subtitle"><a href="/dashboard" style="color:var(--red);text-decoration:none;">← Înapoi la programări</a></div>
@@ -562,9 +577,35 @@ app.get('/deviz', async (c) => {
     ${manoperaTable}
     ${obs}
     <div class="total-final"><span class="label">Total de plată</span><span class="valoare">${numberFormat(total, 2)} lei</span></div>
+    ${decizieBox}
     <a href="/dashboard" class="btn btn-outline">← Înapoi</a>
   </div></div>`;
   return c.html(page({ title: 'Deviz — APG Garage', user, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', headExtra: DEVIZ_STYLE, body }));
+});
+
+app.post('/deviz', async (c) => {
+  const user = c.get('user')!;
+  await ensureDevizDecizie(c.env);
+  const form = await c.req.formData();
+  const rezervareId = parseInt(String(form.get('rezervare_id') ?? '0'), 10);
+  const actiune = String(form.get('actiune') ?? '');
+  const decizie = actiune === 'aproba' ? 'aprobat' : actiune === 'respinge' ? 'respins' : '';
+  if (!rezervareId || !decizie) return c.redirect('/dashboard');
+
+  const row = await c.env.DB.prepare(
+    `SELECT d.id as deviz_id, d.decizie as decizie_curenta, r.nr_inmatriculare, r.producator, r.model, u.nume,
+       (SELECT IFNULL(SUM(total),0) FROM deviz_randuri WHERE deviz_id = d.id) as total
+     FROM devize d JOIN rezervari r ON r.id = d.rezervare_id JOIN users u ON u.id = r.user_id
+     WHERE d.rezervare_id = ? AND r.user_id = ? AND d.status = 'trimis'`,
+  ).bind(rezervareId, user.uid).first<any>();
+
+  // Doar dacă devizul există și nu a fost încă decis (nu permitem schimbarea deciziei)
+  if (row && !row.decizie_curenta) {
+    await c.env.DB.prepare(`UPDATE devize SET decizie = ?, decizie_data = datetime('now') WHERE id = ?`).bind(decizie, row.deviz_id).run();
+    const masina = ((row.nr_inmatriculare ?? '') + ' ' + (row.producator ?? '') + ' ' + (row.model ?? '')).trim();
+    c.executionCtx.waitUntil(notificareDevizDecizie(c.env, row.nume, masina, rezervareId, decizie as 'aprobat' | 'respins', Number(row.total)));
+  }
+  return c.redirect('/deviz?rezervare_id=' + rezervareId);
 });
 
 export default app;
