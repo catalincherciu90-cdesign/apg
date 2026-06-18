@@ -25,6 +25,10 @@ export const SETARI_DEFAULT: Record<string, string> = {
   contact_program_sapt: 'Luni — Vineri',
   contact_program_ore: '09:00 — 17:00',
   contact_maps_url: '',
+  // WhatsApp + date firmă (pentru butoane flotante și pagini legale)
+  whatsapp_numar: '',
+  firma_cui: '',
+  firma_reg_com: '',
   // Tractari
   tractari_activ: '1',
   tractari_telefon: '',

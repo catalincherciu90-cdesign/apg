@@ -119,6 +119,7 @@ app.get('/', async (c) => {
     email: s.contact_email,
     address: { '@type': 'PostalAddress', streetAddress: s.contact_adresa, addressLocality: 'București', addressCountry: 'RO' },
     openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '17:00' }],
+    areaServed: { '@type': 'City', name: 'București' },
     priceRange: '$$',
   };
   const jsonLd = `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
@@ -610,6 +611,107 @@ app.post('/dezmembrari', async (c) => {
   }
   const vals: Record<string, string> = success ? {} : { nume, telefon, piesa_dorita: piesa };
   return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', pagini: c.get('pagini'), path: '/dezmembrari', description: 'Piese auto din dezmembrări la APG Garage. Vezi mașinile disponibile și cere piesa de care ai nevoie.', headExtra: DEZM_STYLE, body: dezmBody(user, masini ?? [], selectedId, success, error, vals), bodyEnd: DEZM_SCRIPT }));
+});
+
+/* ============================ PAGINI LEGALE ============================ */
+const LEGAL_STYLE = `<style>
+    ${HERO_SMALL}
+    .legal-wrap { max-width:820px; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
+    .legal-wrap h2 { font-family:'Barlow Condensed',sans-serif; font-size:1.4rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:2rem 0 0.8rem; color:var(--white); }
+    .legal-wrap h2:first-child { margin-top:0; }
+    .legal-wrap p, .legal-wrap li { color:var(--grey-light); line-height:1.8; font-size:0.95rem; }
+    .legal-wrap ul { margin:0.5rem 0 1rem 1.2rem; }
+    .legal-wrap a { color:var(--red); }
+    .legal-meta { color:var(--grey); font-size:0.82rem; margin-bottom:1.5rem; }
+</style>`;
+
+function legalIdent(s: Record<string, string>): string {
+  const rows = [
+    ['Denumire', 'APG Garage'],
+    ['Adresă', s.contact_adresa],
+    ['Email', s.contact_email],
+    ['Telefon', s.contact_telefon],
+    ['CUI / CIF', s.firma_cui],
+    ['Reg. Comerțului', s.firma_reg_com],
+  ].filter(([, v]) => v && String(v).trim());
+  return `<ul>${rows.map(([k, v]) => `<li><strong style="color:var(--white)">${k}:</strong> ${esc(String(v))}</li>`).join('')}</ul>`;
+}
+
+function legalPage(title: string, subtitlu: string, continut: string): string {
+  return `<section class="hero-small"><div class="section-label">Informații</div>
+    <div class="page-title">${title}</div>
+    <div class="page-subtitle">${subtitlu}</div></section>
+    <div class="legal-wrap"><div class="legal-meta">Ultima actualizare: ${new Date().toLocaleDateString('ro-RO')}</div>${continut}</div>`;
+}
+
+app.get('/confidentialitate', async (c) => {
+  const s = await getSetari(c.env);
+  const continut = `
+    <p>Această politică explică modul în care APG Garage colectează, folosește și protejează datele tale cu caracter personal, în conformitate cu Regulamentul (UE) 2016/679 (GDPR).</p>
+    <h2>Operatorul datelor</h2>
+    ${legalIdent(s)}
+    <h2>Ce date colectăm</h2>
+    <ul>
+      <li>Date de identificare și contact: nume, email, telefon;</li>
+      <li>Date despre vehicul: număr de înmatriculare, marcă, model, istoric service;</li>
+      <li>Conținutul mesajelor trimise prin formularul de contact;</li>
+      <li>Date tehnice strict necesare funcționării site-ului (cookie-uri).</li>
+    </ul>
+    <h2>Scopul prelucrării</h2>
+    <ul>
+      <li>Crearea și administrarea contului tău;</li>
+      <li>Programarea și efectuarea serviciilor auto, emiterea devizelor;</li>
+      <li>Trimiterea de notificări legate de programări și reminder-e (revizie, verificare rampă);</li>
+      <li>Răspunsul la solicitările transmise prin formularul de contact.</li>
+    </ul>
+    <h2>Temeiul legal</h2>
+    <p>Prelucrarea se bazează pe executarea contractului de prestări servicii, pe consimțământul tău (acolo unde este cazul) și pe interesul legitim al operatorului.</p>
+    <h2>Durata de stocare</h2>
+    <p>Păstrăm datele atât timp cât ai cont activ și ulterior pe durata impusă de obligațiile legale (ex. fiscale).</p>
+    <h2>Drepturile tale</h2>
+    <p>Ai dreptul de acces, rectificare, ștergere, restricționare, portabilitate și opoziție, precum și dreptul de a-ți retrage consimțământul. Pentru exercitarea lor, ne poți contacta la <a href="mailto:${esc(s.contact_email)}">${esc(s.contact_email)}</a>. De asemenea, te poți adresa Autorității Naționale de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP).</p>
+    <h2>Persoane împuternicite</h2>
+    <p>Pentru trimiterea emailurilor folosim furnizori de servicii de email (Google / Resend). Datele sunt transmise strict în scopul livrării notificărilor.</p>`;
+  return c.html(page({ title: 'Politica de confidențialitate — APG Garage', user: c.get('user'), nav: 'public', pagini: c.get('pagini'), path: '/confidentialitate', description: 'Politica de confidențialitate APG Garage — cum colectăm și protejăm datele tale personale (GDPR).', headExtra: LEGAL_STYLE, body: legalPage('Politica de <span>confidențialitate</span>', 'Protecția datelor tale personale (GDPR)', continut) }));
+});
+
+app.get('/termeni', async (c) => {
+  const s = await getSetari(c.env);
+  const continut = `
+    <p>Prin utilizarea site-ului apg-garage.ro și a serviciilor oferite, ești de acord cu termenii de mai jos.</p>
+    <h2>Prestatorul serviciilor</h2>
+    ${legalIdent(s)}
+    <h2>Servicii</h2>
+    <p>APG Garage oferă servicii de revizii, reparații mecanice, diagnoză, verificare rampă, tractări și piese din dezmembrări. Programările făcute online au caracter de solicitare și sunt confirmate de service.</p>
+    <h2>Programări</h2>
+    <ul>
+      <li>O programare devine fermă după confirmarea din partea service-ului;</li>
+      <li>Te rugăm să anunți din timp dacă nu mai poți ajunge la o programare;</li>
+      <li>Devizul comunicat are caracter estimativ și poate fi ajustat în funcție de constatările la fața locului, cu acordul tău.</li>
+    </ul>
+    <h2>Obligațiile clientului</h2>
+    <p>Te obligi să furnizezi informații corecte despre vehicul și date de contact valide.</p>
+    <h2>Prețuri și plată</h2>
+    <p>Prețurile afișate sunt orientative. Prețul final se stabilește prin deviz, înainte de începerea lucrării.</p>
+    <h2>Soluționarea litigiilor</h2>
+    <p>Eventualele neînțelegeri se rezolvă pe cale amiabilă. Te poți adresa și platformei ANPC – SOL: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener nofollow">ec.europa.eu/consumers/odr</a>, respectiv SAL: <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener nofollow">anpc.ro/ce-este-sal</a>.</p>`;
+  return c.html(page({ title: 'Termeni și condiții — APG Garage', user: c.get('user'), nav: 'public', pagini: c.get('pagini'), path: '/termeni', description: 'Termenii și condițiile de utilizare a serviciilor APG Garage.', headExtra: LEGAL_STYLE, body: legalPage('Termeni și <span>condiții</span>', 'Condițiile de utilizare a serviciilor', continut) }));
+});
+
+app.get('/cookies', async (c) => {
+  const continut = `
+    <p>Site-ul apg-garage.ro folosește cookie-uri pentru a funcționa corect și pentru a îmbunătăți experiența ta.</p>
+    <h2>Ce sunt cookie-urile</h2>
+    <p>Cookie-urile sunt fișiere mici stocate în browser care permit site-ului să rețină anumite informații (ex. sesiunea de autentificare).</p>
+    <h2>Ce cookie-uri folosim</h2>
+    <ul>
+      <li><strong style="color:var(--white)">Cookie-uri strict necesare:</strong> pentru autentificare și funcționarea sigură a contului (sesiune). Fără ele site-ul nu funcționează corect.</li>
+      <li><strong style="color:var(--white)">Preferințe:</strong> rețin acceptul tău pentru această notificare.</li>
+    </ul>
+    <p>Nu folosim cookie-uri de publicitate sau de urmărire de la terți.</p>
+    <h2>Controlul cookie-urilor</h2>
+    <p>Poți șterge sau bloca cookie-urile din setările browserului. Dezactivarea celor strict necesare poate afecta funcționarea site-ului.</p>`;
+  return c.html(page({ title: 'Politica de cookie-uri — APG Garage', user: c.get('user'), nav: 'public', pagini: c.get('pagini'), path: '/cookies', description: 'Politica de cookie-uri APG Garage.', headExtra: LEGAL_STYLE, body: legalPage('Politica de <span>cookie-uri</span>', 'Cum folosim cookie-urile', continut) }));
 });
 
 export default app;
