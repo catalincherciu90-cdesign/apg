@@ -7,9 +7,22 @@ import { getAll } from '../../lib/form';
 import { LABELS, SECTIUNI } from '../../lib/permisiuni';
 import { getSetari, setSetare, PAGINI_TOGGLE } from '../../lib/setari';
 import { createSessionCookie } from '../../lib/session';
+import { ensureRampaColumns } from '../../lib/masini';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 const jsAttr = (s: string) => esc(s).replace(/'/g, '&#039;');
+function addMonths(d: string, months: number): string {
+  const dt = new Date(String(d).slice(0, 10) + 'T00:00:00Z');
+  dt.setUTCMonth(dt.getUTCMonth() + months);
+  return dt.toISOString().slice(0, 10);
+}
+// Construiește eticheta colorată „X zile rămase" până la o scadență.
+function countdownLabel(scadenta: string, azi: string, ultima: string): string {
+  const zile = diffDays(azi, scadenta);
+  const culoare = zile < 0 ? 'var(--red)' : zile <= 30 ? '#f0a500' : '#2ecc71';
+  const text = zile < 0 ? `Depășită cu ${Math.abs(zile)} zile` : `${zile} zile rămase`;
+  return `<span style="color:${culoare};font-weight:700;">${text}</span><br><small style="color:var(--grey);">scadență ${dateRo(scadenta)} · ultima: ${dateRo(ultima)}</small>`;
+}
 
 /* ============================ ANGAJATI ============================ */
 const ANG_STYLE = `<style>
@@ -260,6 +273,10 @@ app.post('/setari', async (c) => {
     const n = Math.max(1, parseInt(valoare || '1', 10) || 1);
     await setSetare(c.env, 'capacitate_simultan', String(n));
     success = 'Capacitatea a fost salvată.';
+  } else if (actiune === 'rampa_interval') {
+    const n = Math.min(120, Math.max(1, parseInt(valoare || '24', 10) || 24));
+    await setSetare(c.env, 'rampa_interval_luni', String(n));
+    success = 'Intervalul pentru verificarea de rampă a fost salvat.';
   } else if (permise[actiune]?.includes(cheie)) {
     await setSetare(c.env, cheie, actiune === 'toggle' ? String(form.get('valoare') ?? '0') : valoare);
     success = actiune === 'toggle' ? 'Setarea a fost salvată.' : actiune === 'telefon' ? 'Numărul de telefon a fost salvat.' : actiune === 'mesaj' ? 'Mesajul a fost salvat.' : 'Titlul a fost salvat.';
@@ -334,6 +351,7 @@ async function renderSetari(c: AppContext, success: string) {
   }).join('');
 
   const capacitate = Math.max(1, parseInt(s.capacitate_simultan || '1', 10) || 1);
+  const rampaInterval = Math.min(120, Math.max(1, parseInt(s.rampa_interval_luni || '24', 10) || 24));
   const body = `<div class="container" style="max-width:750px;">
     <div class="page-title">Setări <span>site</span></div>
     <div class="page-subtitle">Activează sau dezactivează secțiunile publice ale site-ului.</div>
@@ -343,6 +361,14 @@ async function renderSetari(c: AppContext, success: string) {
       <div class="setare-info" style="margin-bottom:0.8rem;"><h3>Mașini în lucru simultan</h3><p>Câte programări poți prelua în același interval (ex. nr. de rampe/mecanici). Sloturile de pe site se blochează abia când se atinge această capacitate.</p></div>
       <form method="POST" style="display:flex;gap:0.8rem;align-items:flex-end;flex-wrap:wrap;"><input type="hidden" name="actiune" value="capacitate">
         <div class="form-group" style="margin:0;width:120px;"><label>Capacitate</label><input type="number" name="valoare" min="1" max="20" value="${capacitate}"></div>
+        <button type="submit" class="btn btn-primary btn-sm" style="margin-bottom:0;">Salvează</button>
+      </form>
+    </div></div>
+    <div style="font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin:1.8rem 0 0.8rem;">Verificare rampă</div>
+    <div class="setare-card"><div style="flex:1;">
+      <div class="setare-info" style="margin-bottom:0.8rem;"><h3>Interval reminder verificare rampă</h3><p>La câte luni de la ultima verificare de rampă să fie notificat clientul. Reminderul pleacă cu ~30 de zile înainte de scadență. Data se actualizează automat când finalizezi o programare de verificare rampă.</p></div>
+      <form method="POST" style="display:flex;gap:0.8rem;align-items:flex-end;flex-wrap:wrap;"><input type="hidden" name="actiune" value="rampa_interval">
+        <div class="form-group" style="margin:0;width:120px;"><label>Interval (luni)</label><input type="number" name="valoare" min="1" max="120" value="${rampaInterval}"></div>
         <button type="submit" class="btn btn-primary btn-sm" style="margin-bottom:0;">Salvează</button>
       </form>
     </div></div>
@@ -462,6 +488,9 @@ app.get('/clienti/profil', async (c) => {
   }
 
   const azi = todayRo();
+  await ensureRampaColumns(c.env);
+  const setari = await getSetari(c.env);
+  const rampaLuni = Math.min(120, Math.max(1, parseInt(setari.rampa_interval_luni || '24', 10) || 24));
   const { results: masini } = await c.env.DB.prepare('SELECT * FROM masini WHERE user_id = ? ORDER BY created_at DESC').bind(id).all<any>();
   const { results: rezervari } = await c.env.DB.prepare(
     `SELECT r.*, (SELECT IFNULL(SUM(dr.total),0) FROM devize d JOIN deviz_randuri dr ON dr.deviz_id = d.id WHERE d.rezervare_id = r.id) AS deviz_total,
@@ -476,18 +505,21 @@ app.get('/clienti/profil', async (c) => {
   const masiniCards = (masini ?? []).length === 0
     ? `<div class="card" style="text-align:center;color:var(--grey);padding:1.5rem;">Clientul nu are mașini înregistrate.</div>`
     : (masini ?? []).map((m) => {
-        let revizieHtml = '<span style="color:var(--grey);">Fără dată de revizie</span>';
-        if (m.data_ultima_revizie) {
-          const scadenta = addDays(String(m.data_ultima_revizie).slice(0, 10), 365);
-          const zile = diffDays(azi, scadenta);
-          const culoare = zile < 0 ? 'var(--red)' : zile <= 30 ? '#f0a500' : '#2ecc71';
-          const text = zile < 0 ? `Depășită cu ${Math.abs(zile)} zile` : `${zile} zile rămase`;
-          revizieHtml = `<span style="color:${culoare};font-weight:700;">${text}</span><br><small style="color:var(--grey);">scadență ${dateRo(scadenta)} · ultima: ${dateRo(m.data_ultima_revizie)}</small>`;
-        }
-        return `<div class="card" style="margin-bottom:0.8rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center;">
-          <div><div style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;letter-spacing:1px;">${esc(m.nr_inmatriculare ?? '-')}</div>
-            <div style="color:var(--grey);font-size:0.88rem;">${esc((m.producator ?? '') + ' ' + (m.model ?? ''))}${m.serie_caroserie ? ' · ' + esc(m.serie_caroserie) : ''}</div></div>
-          <div style="text-align:right;font-size:0.9rem;">${revizieHtml}</div>
+        const revizieHtml = m.data_ultima_revizie
+          ? countdownLabel(addDays(String(m.data_ultima_revizie).slice(0, 10), 365), azi, m.data_ultima_revizie)
+          : '<span style="color:var(--grey);">—</span>';
+        const rampaHtml = m.data_ultima_rampa
+          ? countdownLabel(addMonths(m.data_ultima_rampa, rampaLuni), azi, m.data_ultima_rampa)
+          : '<span style="color:var(--grey);">—</span>';
+        return `<div class="card" style="margin-bottom:0.8rem;">
+          <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:baseline;margin-bottom:0.6rem;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;letter-spacing:1px;">${esc(m.nr_inmatriculare ?? '-')}</div>
+            <div style="color:var(--grey);font-size:0.88rem;">${esc((m.producator ?? '') + ' ' + (m.model ?? ''))}${m.serie_caroserie ? ' · ' + esc(m.serie_caroserie) : ''}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;border-top:1px solid var(--border);padding-top:0.7rem;">
+            <div><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--grey);margin-bottom:0.2rem;">Revizie</div>${revizieHtml}</div>
+            <div><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--grey);margin-bottom:0.2rem;">Verificare rampă</div>${rampaHtml}</div>
+          </div>
         </div>`;
       }).join('');
 
