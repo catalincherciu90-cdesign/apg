@@ -18,6 +18,10 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Linkurile nu își schimbă culoarea (inclusiv mov după vizitare). Cele cu
+   stil propriu (nav, butoane, accente inline) își păstrează culoarea lor. */
+a, a:link, a:visited, a:active { color: inherit; }
+
 body {
     background: var(--dark);
     color: var(--white);
