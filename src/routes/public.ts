@@ -5,6 +5,7 @@ import { esc, nl2br, numberFormat } from '../lib/format';
 import { getSetari, paginaActiva } from '../lib/setari';
 import { notificareMesajContact, notificareCerereTractare, notificareCererePiesa } from '../lib/notificari';
 import { ensureMesaje } from '../lib/mesaje';
+import { ensureRecenzii, stele } from '../lib/recenzii';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -65,6 +66,8 @@ const HOME_STYLE = `<style>
 app.get('/', async (c) => {
   const user = c.get('user');
   const s = await getSetari(c.env);
+  await ensureRecenzii(c.env);
+  const { results: recenzii } = await c.env.DB.prepare('SELECT nume, rating, text FROM recenzii WHERE activ = 1 ORDER BY ordine ASC, created_at DESC LIMIT 12').all<any>();
   const heroBtns = user && user.rol !== 'angajat'
     ? `<a href="/rezervare" class="btn btn-primary">Fă o programare</a><a href="/dashboard" class="btn btn-outline">Programările mele</a>`
     : `<a href="/register" class="btn btn-primary">Programează-te acum</a><a href="/preturi" class="btn btn-outline">Vezi prețuri</a>`;
@@ -96,6 +99,21 @@ app.get('/', async (c) => {
         <div class="why-item"><div class="num">100%</div><h3>Transparență</h3><p>Știi exact ce și cât costă.</p></div>
     </div>
   </section>
+  ${(recenzii && recenzii.length) ? `<style>
+    .reviews-section{padding:3.5rem 1.5rem;border-bottom:1px solid var(--border);text-align:center;}
+    .reviews-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem;max-width:1100px;margin:1.5rem auto 0;text-align:left;}
+    .review-card{background:var(--dark2);border:1px solid var(--border);border-top:3px solid var(--red);padding:1.5rem;}
+    .review-stars{color:#f0a500;letter-spacing:2px;font-size:1.1rem;margin-bottom:0.6rem;}
+    .review-card p{color:var(--grey-light);line-height:1.7;font-size:0.95rem;font-style:italic;margin:0 0 1rem;}
+    .review-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;color:var(--white);}
+  </style>
+  <section class="reviews-section">
+    <div class="section-label">Părerea clienților</div>
+    <div class="section-title">Ce spun <span>clienții</span></div>
+    <div class="reviews-grid">
+      ${recenzii.map((r) => `<div class="review-card"><div class="review-stars">${stele(r.rating)}</div><p>„${esc(r.text)}"</p><div class="review-name">— ${esc(r.nume)}</div></div>`).join('')}
+    </div>
+  </section>` : ''}
   <section class="cta-photo"><div class="cta-inner"><div class="cta-box">
     <h2>Mașina ta, pe <span>mâini bune</span></h2>
     <p>Diagnoză, reparații și revizii pentru orice marcă. Programează-te online în câteva minute și lasă restul în grija noastră.</p>
@@ -108,7 +126,7 @@ app.get('/', async (c) => {
     <p style="color:var(--grey);margin-bottom:1.5rem;">Sâmbătă și duminică: închis</p>
     <a href="/contact" class="btn btn-outline">Contactează-ne</a>
   </section>`;
-  const ld = {
+  const ld: Record<string, any> = {
     '@context': 'https://schema.org',
     '@type': 'AutoRepair',
     name: 'APG Garage',
@@ -122,6 +140,10 @@ app.get('/', async (c) => {
     areaServed: { '@type': 'City', name: 'București' },
     priceRange: '$$',
   };
+  if (recenzii && recenzii.length) {
+    const avg = recenzii.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / recenzii.length;
+    ld.aggregateRating = { '@type': 'AggregateRating', ratingValue: avg.toFixed(1), reviewCount: recenzii.length };
+  }
   const jsonLd = `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
   return c.html(page({ title: 'APG Garage — Service Auto București', user, nav: 'public', pagini: c.get('pagini'), path: '/', description: 'Service auto în București: revizii, reparații mecanice, diagnoză, frâne și suspensie. Programează-te online la APG Garage.', headExtra: HOME_STYLE, body, bodyEnd: jsonLd }));
 });
