@@ -306,7 +306,6 @@ function contactBody(s: Record<string, string>, success: boolean, error: string,
         <div class="card" style="padding:0 1.2rem;">
             <div class="contact-info-item"><div class="icon">📍</div><div><div class="lbl">Adresă</div><div class="val">${nl2br(s.contact_adresa)}</div></div></div>
             <div class="contact-info-item"><div class="icon">📞</div><div><div class="lbl">Telefon</div><div class="val"><a href="tel:${esc(telClean)}">${esc(s.contact_telefon)}</a></div></div></div>
-            <div class="contact-info-item"><div class="icon">✉️</div><div><div class="lbl">Email</div><div class="val"><a href="mailto:${esc(s.contact_email)}">${esc(s.contact_email)}</a></div></div></div>
             <div class="contact-info-item"><div class="icon">🕐</div><div><div class="lbl">Program</div><div class="val"><div class="program-grid">
                 <div class="program-row"><div>${esc(s.contact_program_sapt)}</div><div>${esc(s.contact_program_ore)}</div></div>
                 <div class="program-row" style="opacity:0.4;"><div>Sâmbătă — Duminică</div><div>Închis</div></div>
