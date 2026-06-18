@@ -138,7 +138,12 @@ app.get('/', async (c) => {
     email: s.contact_email,
     address: { '@type': 'PostalAddress', streetAddress: s.contact_adresa, addressLocality: 'București', addressCountry: 'RO' },
     openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '17:00' }],
-    areaServed: { '@type': 'City', name: 'București' },
+    areaServed: [
+      { '@type': 'City', name: 'București' },
+      { '@type': 'Place', name: 'Sector 6' },
+      { '@type': 'Place', name: 'Militari' },
+    ],
+    knowsAbout: ['Service auto', 'Mecanică auto', 'Reparații Honda', 'Revizie auto', 'Diagnoză auto'],
     priceRange: '$$',
   };
   const lat = String(s.firma_geo_lat ?? '').trim();
@@ -149,7 +154,7 @@ app.get('/', async (c) => {
     ld.aggregateRating = { '@type': 'AggregateRating', ratingValue: avg.toFixed(1), reviewCount: recenzii.length };
   }
   const jsonLd = `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
-  return c.html(page({ title: 'APG Garage — Service Auto București', user, nav: 'public', pagini: c.get('pagini'), path: '/', description: 'Service auto în București: revizii, reparații mecanice, diagnoză, frâne și suspensie. Programează-te online la APG Garage.', headExtra: HOME_STYLE, body, bodyEnd: jsonLd }));
+  return c.html(page({ title: 'APG Garage — Service Auto București', user, nav: 'public', pagini: c.get('pagini'), path: '/', description: 'Service auto în Militari, Sector 6 și București: revizii, mecanică auto, reparații Honda, diagnoză, frâne și suspensie. Programează-te online la APG Garage.', headExtra: HOME_STYLE, body, bodyEnd: jsonLd }));
 });
 
 /* ============================ DESPRE ============================ */
@@ -661,6 +666,15 @@ const SERVICII_SEO: ServiciuSeo[] = [
     extra: 'Îți recomandăm o revizie la fiecare 10.000–15.000 km sau o dată pe an. După revizie, îți setăm un reminder automat ca să nu pierzi următoarea scadență.',
   },
   {
+    slug: 'mecanica-auto',
+    nume: 'Mecanică auto',
+    h1: 'Service mecanică auto în București',
+    meta: 'Service mecanică auto în Militari și Sector 6, București. Reparații mecanice pentru orice marcă — Honda, Toyota, VW, Dacia. Programează-te online la APG Garage.',
+    intro: 'De la zgomote suspecte la defecțiuni complexe, ne ocupăm de orice reparație mecanică. Diagnosticăm corect și reparăm durabil, cu piese de calitate, pentru orice marcă și model.',
+    include: ['Reparații motor și ambreiaj', 'Distribuție, curele și role', 'Sistem de răcire și termostat', 'Reparații cutie de viteze', 'Înlocuire rulmenți, fuzete și articulații', 'Reparații Honda, Toyota, Volkswagen, BMW, Dacia și alte mărci'],
+    extra: 'Indiferent de problemă, îți spunem clar ce trebuie făcut și cât costă, înainte de a începe lucrarea.',
+  },
+  {
     slug: 'diagnoza-auto',
     nume: 'Diagnoză computerizată',
     h1: 'Diagnoză auto computerizată în București',
@@ -715,7 +729,11 @@ function serviciuJsonLd(sv: ServiciuSeo): string {
     '@type': 'Service',
     name: sv.nume,
     serviceType: sv.nume,
-    areaServed: { '@type': 'City', name: 'București' },
+    areaServed: [
+      { '@type': 'City', name: 'București' },
+      { '@type': 'Place', name: 'Sector 6' },
+      { '@type': 'Place', name: 'Militari' },
+    ],
     provider: { '@type': 'AutoRepair', name: 'APG Garage', url: SITE_URL, telephone: '' },
     url: `${SITE_URL}/servicii/${sv.slug}`,
   };

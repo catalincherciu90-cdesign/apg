@@ -39,16 +39,9 @@ export interface PageOpts {
 export function page(opts: PageOpts): string {
   const nav = opts.nav ?? 'public';
   const navHtml = nav === 'admin' ? navAdmin(opts.user, opts.currentPath ?? '') : nav === 'public' ? navPublic(opts.user, opts.pagini) : '';
-  const footer = nav === 'admin' ? '' : `<footer style="border-top:1px solid var(--border);padding:1.5rem;text-align:center;">
-    <div style="display:flex;flex-wrap:wrap;gap:0.6rem 1.2rem;justify-content:center;margin-bottom:0.9rem;font-size:0.82rem;">
-      <a href="/confidentialitate" style="color:var(--grey-light);text-decoration:none;">Politica de confidențialitate</a>
-      <a href="/termeni" style="color:var(--grey-light);text-decoration:none;">Termeni și condiții</a>
-      <a href="/cookies" style="color:var(--grey-light);text-decoration:none;">Politica de cookie-uri</a>
-      <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener nofollow" style="color:var(--grey-light);text-decoration:none;">ANPC – SAL</a>
-      <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener nofollow" style="color:var(--grey-light);text-decoration:none;">ANPC – SOL</a>
-    </div>
-    <div style="color:var(--grey);font-size:0.8rem;">© ${anCurent()} APG Garage. Toate drepturile rezervate.</div>
-  </footer>`;
+  // Footer-ul (bogat, cu date firmă) este injectat din middleware pe paginile
+  // publice, fiindcă are nevoie de setări. Pe admin nu apare footer.
+  const footer = '';
   const desc = opts.description ?? DEFAULT_DESC;
   const canonical = SITE_URL + (opts.path ?? '');
   const ogImg = SITE_URL + (opts.ogImage ?? '/hero.jpg');
@@ -82,6 +75,60 @@ ${footer}
 ${opts.bodyEnd ?? ''}
 </body>
 </html>`;
+}
+
+// Footer bogat cu rubrici SEO + date legale ale firmei (injectat pe paginile publice).
+export function siteFooter(s: Record<string, string>): string {
+  const tel = String(s.contact_telefon ?? '').trim();
+  const telHref = tel.replace(/[^\d+]/g, '');
+  const email = String(s.contact_email ?? '').trim();
+  const adresa = String(s.contact_adresa ?? '').trim();
+  const cui = String(s.firma_cui ?? '').trim();
+  const reg = String(s.firma_reg_com ?? '').trim();
+  const servicii = [
+    ['/servicii/revizie-auto', 'Revizie auto'],
+    ['/servicii/mecanica-auto', 'Mecanică auto'],
+    ['/servicii/diagnoza-auto', 'Diagnoză computerizată'],
+    ['/servicii/sistem-franare', 'Sistem de frânare'],
+    ['/servicii/suspensie-directie', 'Suspensie și direcție'],
+    ['/servicii/verificare-rampa', 'Verificare rampă'],
+  ];
+  return `<footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="footer-brand">APG <span>Garage</span></div>
+        <p>Service auto în Militari, Sector 6 și București. Revizii, mecanică auto, diagnoză și reparații pentru orice marcă.</p>
+        ${tel ? `<p style="margin-top:0.6rem;"><a href="tel:${esc(telHref)}">${esc(tel)}</a></p>` : ''}
+      </div>
+      <div class="footer-col">
+        <h4>Servicii</h4>
+        ${servicii.map(([u, t]) => `<a href="${u}">${esc(t)}</a>`).join('')}
+      </div>
+      <div class="footer-col">
+        <h4>Zone & specializări</h4>
+        <p>Service auto Militari · Service auto Sector 6 · Service auto București.</p>
+        <p style="margin-top:0.5rem;">Reparații Honda, Toyota, Volkswagen, BMW, Dacia și orice marcă.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Date firmă</h4>
+        <ul class="footer-firma">
+          <li>APG Garage</li>
+          ${adresa ? `<li>${esc(adresa)}</li>` : ''}
+          ${cui ? `<li>CUI: ${esc(cui)}</li>` : ''}
+          ${reg ? `<li>${esc(reg)}</li>` : ''}
+          ${email ? `<li><a href="mailto:${esc(email)}">${esc(email)}</a></li>` : ''}
+        </ul>
+        <div class="footer-legal-links">
+          <a href="/confidentialitate">Confidențialitate</a>
+          <a href="/termeni">Termeni</a>
+          <a href="/cookies">Cookies</a>
+          <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener nofollow">ANPC SAL</a>
+          <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener nofollow">ANPC SOL</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">© ${anCurent()} APG Garage · Service auto București. Toate drepturile rezervate.</div>
+  </footer>`;
 }
 
 // Port din src/views/nav.php (URL-uri curate)

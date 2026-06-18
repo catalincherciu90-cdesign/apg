@@ -333,6 +333,65 @@ footer {
     margin-top: 4rem;
 }
 
+/* Footer bogat (rubrici SEO + date firmă) */
+.site-footer {
+    border-top: 1px solid var(--border);
+    background: var(--black);
+    margin-top: 4rem;
+    padding: 2.5rem 1.5rem 1.5rem;
+    text-align: left;
+}
+.site-footer .footer-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1.3fr 1.3fr;
+    gap: 2rem;
+}
+.site-footer .footer-col h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--white);
+    margin-bottom: 0.9rem;
+}
+.site-footer .footer-col p { color: var(--grey); font-size: 0.85rem; line-height: 1.6; }
+.site-footer .footer-col a { color: var(--grey-light); text-decoration: none; }
+.site-footer .footer-col a:hover { color: var(--red); }
+.site-footer .footer-col > a { display: block; padding: 0.28rem 0; font-size: 0.88rem; }
+.site-footer .footer-brand {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 0.6rem;
+}
+.site-footer .footer-brand span { color: var(--red); }
+.site-footer .footer-firma { list-style: none; padding: 0; margin: 0 0 0.9rem; }
+.site-footer .footer-firma li { color: var(--grey); font-size: 0.84rem; line-height: 1.7; }
+.site-footer .footer-legal-links { display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem; }
+.site-footer .footer-legal-links a { font-size: 0.8rem; color: var(--grey-light); text-decoration: none; }
+.site-footer .footer-legal-links a:hover { color: var(--red); }
+.site-footer .footer-bottom {
+    max-width: 1100px;
+    margin: 2rem auto 0;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    color: var(--grey);
+    font-size: 0.8rem;
+    text-align: center;
+}
+@media (max-width: 800px) {
+    .site-footer .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.8rem; }
+}
+@media (max-width: 480px) {
+    .site-footer .footer-grid { grid-template-columns: 1fr; }
+}
+
 /* =====================
    RESPONSIVE BREAKPOINTS
    ===================== */
