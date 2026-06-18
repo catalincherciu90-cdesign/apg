@@ -10,6 +10,16 @@ export interface Env {
   MAIL_REPLY_TO?: string; // adresa de răspuns (ex. un Gmail), opțională
   SESSION_SECRET: string;
   RESEND_API_KEY: string;
+  // Gmail API (OAuth2) — dacă sunt setate, emailurile pleacă prin Gmail.
+  GMAIL_CLIENT_ID?: string;
+  GMAIL_CLIENT_SECRET?: string;
+  GMAIL_REFRESH_TOKEN?: string;
+  GMAIL_SENDER?: string; // ex. "APG Garage <notificari.apggarage@gmail.com>"
+}
+
+export interface SendResult {
+  ok: boolean;
+  error?: string;
 }
 
 export interface SessionUser {
