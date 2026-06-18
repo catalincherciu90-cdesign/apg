@@ -144,8 +144,8 @@ export function navPublic(user: SessionUser | null, pagini?: Record<string, bool
       links = `<a href="/admin">Admin</a><a href="/logout">Ieșire</a>`;
       mobile = `<a href="/admin">Admin</a><a href="/logout">Ieșire</a>`;
     } else {
-      links = `<a href="/dashboard">Programările mele</a><a href="/masini">Mașinile mele</a><a href="/rezervare" class="btn btn-primary" style="padding:0.4rem 1.2rem;">Programare</a><a href="/logout">Ieșire</a>`;
-      mobile = `<a href="/dashboard">Programările mele</a><a href="/masini">Mașinile mele</a><a href="/logout">Ieșire</a><a href="/rezervare" class="btn-mobile">Fă o programare</a>`;
+      links = `<a href="/dashboard">Programările mele</a><a href="/masini">Mașinile mele</a><a href="/cont">Contul meu</a><a href="/rezervare" class="btn btn-primary" style="padding:0.4rem 1.2rem;">Programare</a><a href="/logout">Ieșire</a>`;
+      mobile = `<a href="/dashboard">Programările mele</a><a href="/masini">Mașinile mele</a><a href="/cont">Contul meu</a><a href="/logout">Ieșire</a><a href="/rezervare" class="btn-mobile">Fă o programare</a>`;
     }
   } else {
     links = `<a href="/login">Autentificare</a><a href="/register" class="btn btn-primary" style="padding:0.4rem 1.2rem;">Cont nou</a>`;

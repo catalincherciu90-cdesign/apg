@@ -6,6 +6,8 @@ import { esc, numberFormat, dateRo, timeShort, nl2br, serviciuLabel, STATUS_LABE
 import { notificareProgramareNoua, notificareDevizDecizie } from '../lib/notificari';
 import { ensureDevizDecizie } from '../lib/deviz';
 import { getSetari } from '../lib/setari';
+import { verifyPassword, hashPassword } from '../lib/password';
+import { createSessionCookie } from '../lib/session';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // Restrâns la rutele client (un `use('*')` ar deveni global când e montat la `/`)
@@ -13,6 +15,7 @@ app.use('/dashboard', requireClient);
 app.use('/masini', requireClient);
 app.use('/rezervare', requireClient);
 app.use('/deviz', requireClient);
+app.use('/cont', requireClient);
 
 /* ============================ DASHBOARD ============================ */
 const DASH_STYLE = `<style>
@@ -607,5 +610,81 @@ app.post('/deviz', async (c) => {
   }
   return c.redirect('/deviz?rezervare_id=' + rezervareId);
 });
+
+/* ============================ CONTUL MEU ============================ */
+app.get('/cont', async (c) => renderCont(c, '', ''));
+
+app.post('/cont', async (c) => {
+  const user = c.get('user')!;
+  const form = await c.req.formData();
+  const actiune = String(form.get('actiune') ?? '');
+  let error = '';
+  let success = '';
+
+  if (actiune === 'date') {
+    const nume = String(form.get('nume') ?? '').trim();
+    const email = String(form.get('email') ?? '').trim().toLowerCase();
+    const telefon = String(form.get('telefon') ?? '').trim();
+    if (!nume || !email) error = 'Numele și emailul sunt obligatorii.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) error = 'Adresa de email nu este validă.';
+    else {
+      const exist = await c.env.DB.prepare('SELECT id FROM users WHERE email = ? AND id != ?').bind(email, user.uid).first<any>();
+      if (exist) error = 'Această adresă de email este deja folosită de alt cont.';
+      else {
+        await c.env.DB.prepare('UPDATE users SET nume = ?, email = ?, telefon = ? WHERE id = ?').bind(nume, email, telefon, user.uid).run();
+        await createSessionCookie(c, { uid: user.uid, rol: user.rol, nume, perms: user.perms });
+        success = 'Datele contului au fost actualizate.';
+      }
+    }
+  } else if (actiune === 'parola') {
+    const veche = String(form.get('parola_veche') ?? '');
+    const noua = String(form.get('parola_noua') ?? '');
+    const conf = String(form.get('parola_confirm') ?? '');
+    const row = await c.env.DB.prepare('SELECT parola FROM users WHERE id = ?').bind(user.uid).first<any>();
+    if (!row || !(await verifyPassword(veche, row.parola))) error = 'Parola actuală este incorectă.';
+    else if (noua.length < 6) error = 'Parola nouă trebuie să aibă minim 6 caractere.';
+    else if (noua !== conf) error = 'Parola nouă și confirmarea nu coincid.';
+    else {
+      await c.env.DB.prepare('UPDATE users SET parola = ? WHERE id = ?').bind(await hashPassword(noua), user.uid).run();
+      success = 'Parola a fost schimbată cu succes.';
+    }
+  }
+  return renderCont(c, error, success);
+});
+
+async function renderCont(c: AppContext, error: string, success: string) {
+  const user = c.get('user')!;
+  const u = (await c.env.DB.prepare('SELECT nume, email, telefon FROM users WHERE id = ?').bind(user.uid).first<any>()) ?? {};
+
+  const body = `<div class="container" style="max-width:600px;">
+    <div class="page-title">Contul <span>meu</span></div>
+    <div class="page-subtitle">Editează-ți datele și parola</div>
+    ${error ? `<div class="alert alert-error">${esc(error)}</div>` : ''}
+    ${success ? `<div class="alert alert-success">${esc(success)}</div>` : ''}
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">Date personale</h3>
+      <form method="POST">
+        <input type="hidden" name="actiune" value="date">
+        <div class="form-group"><label>Nume complet *</label><input type="text" name="nume" value="${esc(u.nume ?? '')}" required></div>
+        <div class="form-group"><label>Email *</label><input type="email" name="email" value="${esc(u.email ?? '')}" required></div>
+        <div class="form-group"><label>Telefon</label><input type="tel" name="telefon" value="${esc(u.telefon ?? '')}" placeholder="07xx xxx xxx"></div>
+        <button type="submit" class="btn btn-primary">Salvează datele</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">Schimbă parola</h3>
+      <form method="POST">
+        <input type="hidden" name="actiune" value="parola">
+        <div class="form-group"><label>Parola actuală *</label><input type="password" name="parola_veche" required autocomplete="current-password"></div>
+        <div class="form-group"><label>Parola nouă * (minim 6 caractere)</label><input type="password" name="parola_noua" required minlength="6" autocomplete="new-password"></div>
+        <div class="form-group"><label>Confirmă parola nouă *</label><input type="password" name="parola_confirm" required minlength="6" autocomplete="new-password"></div>
+        <button type="submit" class="btn btn-primary">Schimbă parola</button>
+      </form>
+    </div>
+  </div>`;
+  return c.html(page({ title: 'Contul meu — APG Garage', user, nav: 'public', pagini: c.get('pagini'), robots: 'noindex, nofollow', body }));
+}
 
 export default app;
