@@ -2,6 +2,7 @@ import type { Env } from '../types';
 import { esc, numberFormat } from './format';
 import { sendRaw, emailTemplate } from './mailer';
 import { getSetari } from './setari';
+import { reviewToken } from './recenzii';
 
 /* ============================================================
  * Registru de notificări — sursa unică de adevăr.
@@ -25,6 +26,7 @@ export const NOTIF_EVENTS: NotifEvent[] = [
   { key: 'reminder_rampa', label: 'Reminder verificare rampă', catre: 'client', descriere: 'Reminder automat când se apropie scadența verificării de rampă (interval configurabil în Setări).' },
   { key: 'raspuns_piesa_client', label: 'Răspuns cerere piesă', catre: 'client', descriere: 'Răspunsul service-ului la o cerere de piesă din dezmembrări.' },
   { key: 'mesaj_contact_client', label: 'Confirmare mesaj contact', catre: 'client', descriere: 'Confirmare trimisă clientului că mesajul lui a fost primit.' },
+  { key: 'cere_recenzie_client', label: 'Solicitare recenzie (după lucrare)', catre: 'client', descriere: 'Email de follow-up trimis clientului după finalizarea lucrării, prin care e invitat să lase un rating și o recenzie.' },
 
   { key: 'cont_nou_admin', label: 'Cont nou înregistrat', catre: 'admin', descriere: 'Alertă către admin când un client nou își creează cont.' },
   { key: 'programare_admin', label: 'Programare nouă', catre: 'admin', descriere: 'Alertă către admin la fiecare programare nouă.' },
@@ -216,6 +218,25 @@ export async function notificareReminderProgramare(
     <p>Te așteptăm! Dacă nu mai poți ajunge, te rugăm să ne anunți.</p>
     <a href="${env.BASE_URL}/dashboard" class="btn">Vezi programarea</a>`;
   await notifica(env, 'reminder_programare', email, 'Reminder programare mâine — APG Garage', emailTemplate('Programarea ta este mâine', continut), s);
+}
+
+export async function notificareCereRecenzie(
+  env: Env,
+  email: string,
+  nume: string,
+  rezervareId: number,
+  masina: string,
+  serviciu: string,
+) {
+  const token = await reviewToken(env, rezervareId);
+  const url = `${env.BASE_URL}/recenzie?rid=${rezervareId}&t=${token}`;
+  const continut = `
+    <p>Bună, <strong>${esc(nume)}</strong>!</p>
+    <p>Mulțumim că ai ales APG Garage pentru <strong>${esc(servLabel(serviciu))}</strong> la ${esc(masina)}. Sperăm că totul e în regulă!</p>
+    <p>Ne-ar ajuta enorm dacă ne lași o părere și un rating — durează un minut și ajută alți șoferi să ne găsească.</p>
+    <p style="text-align:center;margin:18px 0;font-size:26px;letter-spacing:6px;color:#f0a500;">★★★★★</p>
+    <a href="${esc(url)}" class="btn">Lasă o recenzie</a>`;
+  await notifica(env, 'cere_recenzie_client', email, 'Cum a fost la APG Garage? Lasă-ne o părere', emailTemplate('Spune-ne părerea ta', continut));
 }
 
 export async function notificareMesajContact(env: Env, nume: string, email: string, telefon: string, mesaj: string) {

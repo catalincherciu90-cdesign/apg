@@ -48,7 +48,8 @@ app.get('/recenzii', async (c) => renderRecenzii(c));
 async function renderRecenzii(c: AppContext) {
   const user = c.get('user')!;
   await ensureRecenzii(c.env);
-  const { results: recenzii } = await c.env.DB.prepare('SELECT * FROM recenzii ORDER BY ordine ASC, created_at DESC').all<any>();
+  const { results: recenzii } = await c.env.DB.prepare('SELECT * FROM recenzii ORDER BY activ ASC, ordine ASC, created_at DESC').all<any>();
+  const inAsteptare = (recenzii ?? []).filter((r) => !r.activ).length;
 
   const lista = (recenzii && recenzii.length)
     ? recenzii.map((r) => `<div class="rec-card ${r.activ ? 'activa' : 'inactiva'}">
@@ -65,7 +66,7 @@ async function renderRecenzii(c: AppContext) {
 
   const body = `<div class="container" style="max-width:780px;">
     <div class="page-title">Recenzii <span>clienți</span></div>
-    <div class="page-subtitle">Testimoniale afișate pe pagina principală</div>
+    <div class="page-subtitle">Testimoniale afișate pe pagina principală${inAsteptare ? ` · <strong style="color:#f0a500;">${inAsteptare} în așteptarea aprobării</strong>` : ''}</div>
     <div class="adauga-form"><h3>+ Adaugă recenzie</h3>
       <form method="POST">
         <input type="hidden" name="actiune" value="adauga">
