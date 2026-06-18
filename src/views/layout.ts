@@ -164,6 +164,7 @@ export function navAdmin(user: SessionUser | null, current: string): string {
 .nav-dropdown-btn { background: none; border: none; color: var(--grey-light); font-family: 'Barlow', sans-serif; font-size: 0.88rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; padding: 0.3rem 0; display: flex; align-items: center; gap: 0.3rem; transition: color 0.2s; white-space: nowrap; }
 .nav-dropdown-btn:hover, .nav-dropdown-btn.active { color: var(--red); }
 .nav-dropdown-btn .arrow { font-size: 0.65rem; transition: transform 0.2s; }
+.admin-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; background: var(--red); color: #fff; font-size: 0.68rem; font-weight: 700; border-radius: 9px; line-height: 1; vertical-align: middle; }
 .nav-dropdown:hover .nav-dropdown-btn .arrow, .nav-dropdown.open .nav-dropdown-btn .arrow { transform: rotate(180deg); }
 .nav-dropdown-menu { display: none; position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); background: var(--black); border: 1px solid var(--border); border-top: 2px solid var(--red); min-width: 200px; z-index: 300; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
 .nav-dropdown.open .nav-dropdown-menu { display: block; }
