@@ -391,9 +391,14 @@ const REZ_STYLE = `<style>
     .success-box p { color: var(--grey); margin-bottom: 1.5rem; }
 </style>`;
 
-function renderRezervare(c: AppContext, error: string, success: boolean, v: Record<string, string>) {
+async function renderRezervare(c: AppContext, error: string, success: boolean, v: Record<string, string>) {
   const user = c.get('user')!;
   const sel = (name: string, val: string) => ((v[name] ?? (name === 'durata' ? '2' : '')) === val ? 'selected' : '');
+  // Serviciile vin din Admin → Servicii (active). Dacă lista e goală, folosim variantele implicite.
+  const { results: servicii } = await c.env.DB.prepare('SELECT nume FROM servicii WHERE activ = 1 ORDER BY ordine ASC, id ASC').all<{ nume: string }>();
+  const optServicii = (servicii && servicii.length)
+    ? servicii.map((s) => `<option value="${esc(s.nume)}" ${sel('serviciu_tip', s.nume)}>${esc(s.nume)}</option>`).join('')
+    : `<option value="revizie" ${sel('serviciu_tip', 'revizie')}>Revizie</option><option value="reparatie" ${sel('serviciu_tip', 'reparatie')}>Reparație mecanică</option><option value="verificare_rampa" ${sel('serviciu_tip', 'verificare_rampa')}>Verificare rampă</option>`;
   let body = `<div class="container">
     <div class="page-title">Programare <span>nouă</span></div>
     <div class="page-subtitle">Completează datele mașinii, alege serviciul și data dorită</div>`;
@@ -415,9 +420,7 @@ function renderRezervare(c: AppContext, error: string, success: boolean, v: Reco
                 <div class="section-divider">Serviciu</div>
                 <div class="form-group"><label>Tip serviciu *</label><select name="serviciu_tip" id="serviciu_tip" required>
                     <option value="">Alege...</option>
-                    <option value="revizie" ${sel('serviciu_tip', 'revizie')}>Revizie</option>
-                    <option value="reparatie" ${sel('serviciu_tip', 'reparatie')}>Reparație mecanică</option>
-                    <option value="verificare_rampa" ${sel('serviciu_tip', 'verificare_rampa')}>Verificare rampă</option>
+                    ${optServicii}
                 </select></div>
                 <div class="form-group"><label>Durată estimată *</label><select name="durata" id="durata" required>
                     <option value="2" ${sel('durata', '2')}>2 ore</option>
