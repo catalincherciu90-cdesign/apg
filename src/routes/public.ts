@@ -84,11 +84,12 @@ app.get('/', async (c) => {
     <div class="section-label">Ce facem</div>
     <div class="section-title">Serviciile <span>noastre</span></div>
     <div class="services-grid">
-        <div class="service-card"><h3>Revizie completă</h3><p>Verificare și înlocuire ulei, filtre, lichide, plăcuțe de frână și toate elementele de uzură.</p></div>
-        <div class="service-card"><h3>Reparații mecanice</h3><p>Diagnosticare computerizată și repararea oricărei defecțiuni mecanice.</p></div>
-        <div class="service-card"><h3>Sistem de frânare</h3><p>Verificare, reglare și înlocuire componente sistem de frânare.</p></div>
-        <div class="service-card"><h3>Suspensie și direcție</h3><p>Diagnosticare și reparare probleme de suspensie, geometrie și direcție.</p></div>
+        <a class="service-card" href="/servicii/revizie-auto" style="text-decoration:none;"><h3>Revizie completă</h3><p>Verificare și înlocuire ulei, filtre, lichide, plăcuțe de frână și toate elementele de uzură.</p></a>
+        <a class="service-card" href="/servicii/diagnoza-auto" style="text-decoration:none;"><h3>Diagnoză computerizată</h3><p>Citim erorile din calculatorul mașinii și stabilim cauza reală a problemei.</p></a>
+        <a class="service-card" href="/servicii/sistem-franare" style="text-decoration:none;"><h3>Sistem de frânare</h3><p>Verificare, reglare și înlocuire componente sistem de frânare.</p></a>
+        <a class="service-card" href="/servicii/suspensie-directie" style="text-decoration:none;"><h3>Suspensie și direcție</h3><p>Diagnosticare și reparare probleme de suspensie, geometrie și direcție.</p></a>
     </div>
+    <div style="text-align:center;margin-top:1.5rem;"><a href="/servicii" class="btn btn-outline">Vezi toate serviciile</a></div>
   </section>
   <section class="why-section">
     <div class="section-label">De ce noi</div>
@@ -140,6 +141,9 @@ app.get('/', async (c) => {
     areaServed: { '@type': 'City', name: 'București' },
     priceRange: '$$',
   };
+  const lat = String(s.firma_geo_lat ?? '').trim();
+  const lng = String(s.firma_geo_lng ?? '').trim();
+  if (lat && lng) ld.geo = { '@type': 'GeoCoordinates', latitude: lat, longitude: lng };
   if (recenzii && recenzii.length) {
     const avg = recenzii.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / recenzii.length;
     ld.aggregateRating = { '@type': 'AggregateRating', ratingValue: avg.toFixed(1), reviewCount: recenzii.length };
@@ -633,6 +637,161 @@ app.post('/dezmembrari', async (c) => {
   }
   const vals: Record<string, string> = success ? {} : { nume, telefon, piesa_dorita: piesa };
   return c.html(page({ title: 'Piese din dezmembrări — APG Garage', user, nav: 'public', pagini: c.get('pagini'), path: '/dezmembrari', description: 'Piese auto din dezmembrări la APG Garage. Vezi mașinile disponibile și cere piesa de care ai nevoie.', headExtra: DEZM_STYLE, body: dezmBody(user, masini ?? [], selectedId, success, error, vals), bodyEnd: DEZM_SCRIPT }));
+});
+
+/* ============================ PAGINI SERVICII (SEO) ============================ */
+interface ServiciuSeo {
+  slug: string;
+  nume: string;
+  h1: string;
+  meta: string;
+  intro: string;
+  include: string[];
+  extra: string;
+}
+
+const SERVICII_SEO: ServiciuSeo[] = [
+  {
+    slug: 'revizie-auto',
+    nume: 'Revizie auto',
+    h1: 'Revizie auto în București',
+    meta: 'Revizie auto completă în București la APG Garage: schimb ulei și filtre, verificare frâne, suspensie, lichide și elemente de uzură. Programează-te online.',
+    intro: 'Revizia periodică este cel mai simplu mod de a-ți menține mașina sigură și fiabilă. La APG Garage facem revizii complete pentru orice marcă și model, cu piese de calitate și verificări amănunțite.',
+    include: ['Schimb ulei motor și filtru de ulei', 'Înlocuire filtru aer, filtru polen și filtru combustibil', 'Verificare sistem de frânare și plăcuțe', 'Control suspensie, direcție și geometrie', 'Verificare și completare lichide (răcire, frână, parbriz)', 'Diagnoză computerizată pentru erori'],
+    extra: 'Îți recomandăm o revizie la fiecare 10.000–15.000 km sau o dată pe an. După revizie, îți setăm un reminder automat ca să nu pierzi următoarea scadență.',
+  },
+  {
+    slug: 'diagnoza-auto',
+    nume: 'Diagnoză computerizată',
+    h1: 'Diagnoză auto computerizată în București',
+    meta: 'Diagnoză auto computerizată în București la APG Garage. Citim erorile din calculatorul mașinii și îți spunem exact ce trebuie reparat. Programează-te online.',
+    intro: 'Martorul de bord aprins nu înseamnă mereu o problemă gravă — dar trebuie verificat. Cu tester profesional citim codurile de eroare din toate calculatoarele mașinii și stabilim cauza reală, fără presupuneri.',
+    include: ['Citire și ștergere coduri de eroare (OBD)', 'Verificare motor, transmisie, ABS, airbag', 'Analiză parametri în timp real', 'Identificarea cauzei și estimare de cost', 'Raport clar, pe înțelesul tău'],
+    extra: 'O diagnoză corectă te scutește de reparații inutile. Îți explicăm exact ce am găsit și ce este sau nu urgent de rezolvat.',
+  },
+  {
+    slug: 'sistem-franare',
+    nume: 'Sistem de frânare',
+    h1: 'Reparații sistem de frânare în București',
+    meta: 'Service frâne în București la APG Garage: înlocuire plăcuțe și discuri, verificare etrieri și lichid de frână. Siguranța ta este prioritatea noastră.',
+    intro: 'Frânele sunt cel mai important sistem de siguranță al mașinii. Verificăm și înlocuim componentele uzate cu piese de calitate, ca să frânezi sigur în orice condiții.',
+    include: ['Înlocuire plăcuțe și discuri de frână', 'Verificare etrieri și furtune', 'Schimb lichid de frână', 'Verificare frână de mână și ABS', 'Test de frânare după intervenție'],
+    extra: 'Dacă auzi scârțâit la frânare sau simți vibrații în pedală, programează-te cât mai repede pentru o verificare.',
+  },
+  {
+    slug: 'suspensie-directie',
+    nume: 'Suspensie și direcție',
+    h1: 'Reparații suspensie și direcție în București',
+    meta: 'Service suspensie și direcție în București la APG Garage: amortizoare, bucșe, articulații, geometrie roți. Confort și siguranță la drum.',
+    intro: 'O suspensie în stare bună înseamnă confort, aderență și control. Diagnosticăm și reparăm problemele de suspensie și direcție, apoi reglăm geometria pentru o conducere sigură.',
+    include: ['Înlocuire amortizoare și arcuri', 'Schimb bucșe, pivoți și capete de bară', 'Verificare rulmenți roți', 'Reglare geometrie (aliniere) roți', 'Test pe drum după intervenție'],
+    extra: 'Zgomotele la trecerea peste denivelări sau uzura neuniformă a anvelopelor sunt semne că suspensia are nevoie de o verificare.',
+  },
+  {
+    slug: 'schimb-ulei',
+    nume: 'Schimb ulei și filtre',
+    h1: 'Schimb ulei și filtre în București',
+    meta: 'Schimb ulei și filtre în București la APG Garage, rapid și cu uleiuri de calitate, potrivite pentru mașina ta. Programează-te online.',
+    intro: 'Uleiul curat protejează motorul și îi prelungește viața. Folosim uleiuri și filtre potrivite specificațiilor mașinii tale și efectuăm schimbul rapid și corect.',
+    include: ['Schimb ulei motor cu specificația corectă', 'Înlocuire filtru de ulei', 'Verificare nivel lichide', 'Resetare indicator service', 'Verificare scurgeri'],
+    extra: 'Îți recomandăm schimbul de ulei la fiecare 10.000–15.000 km sau anual, în funcție de tipul de ulei și de utilizarea mașinii.',
+  },
+  {
+    slug: 'verificare-rampa',
+    nume: 'Verificare rampă',
+    h1: 'Verificare rampă auto în București',
+    meta: 'Verificare pe rampă în București la APG Garage înainte de ITP sau de un drum lung. Verificăm dedesubtul mașinii și îți spunem ce trebuie reparat.',
+    intro: 'O verificare pe rampă îți arată starea reală a mașinii dedesubt — util înainte de ITP, înaintea unui drum lung sau la achiziția unei mașini second-hand.',
+    include: ['Inspecție vizuală a șasiului și caroseriei', 'Verificare sistem de evacuare', 'Control suspensie, direcție și frâne', 'Identificare scurgeri și coroziune', 'Recomandări clare pentru ITP'],
+    extra: 'Îți setăm și un reminder automat pentru următoarea verificare, la intervalul stabilit împreună.',
+  },
+];
+
+export const SERVICII_SLUGS = SERVICII_SEO.map((s) => s.slug);
+
+function serviciuJsonLd(sv: ServiciuSeo): string {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: sv.nume,
+    serviceType: sv.nume,
+    areaServed: { '@type': 'City', name: 'București' },
+    provider: { '@type': 'AutoRepair', name: 'APG Garage', url: SITE_URL, telephone: '' },
+    url: `${SITE_URL}/servicii/${sv.slug}`,
+  };
+  const bc = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Acasă', item: SITE_URL + '/' },
+      { '@type': 'ListItem', position: 2, name: 'Servicii', item: SITE_URL + '/servicii' },
+      { '@type': 'ListItem', position: 3, name: sv.nume, item: `${SITE_URL}/servicii/${sv.slug}` },
+    ],
+  };
+  return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script><script type="application/ld+json">${JSON.stringify(bc).replace(/</g, '\\u003c')}</script>`;
+}
+
+const SERVICII_STYLE = `<style>
+    ${HERO_SMALL}
+    .sv-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; }
+    @media(max-width:760px){ .sv-grid { grid-template-columns:1fr; } }
+    .sv-card { background:var(--dark2); border:1px solid var(--border); border-top:3px solid var(--red); padding:1.5rem; text-decoration:none; display:block; transition:border-color .15s,transform .15s; }
+    .sv-card:hover { border-top-color:var(--white); transform:translateY(-3px); }
+    .sv-card h3 { font-family:'Barlow Condensed',sans-serif; font-size:1.2rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--white); margin-bottom:0.5rem; }
+    .sv-card p { color:var(--grey); font-size:0.9rem; line-height:1.6; }
+    .sv-card .more { color:var(--red); font-size:0.82rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-top:0.8rem; display:inline-block; }
+    .breadcrumb { font-size:0.8rem; color:var(--grey); margin-bottom:1.2rem; }
+    .breadcrumb a { color:var(--grey-light); text-decoration:none; } .breadcrumb a:hover { color:var(--red); }
+    .sv-detail { display:grid; grid-template-columns:1.5fr 1fr; gap:2.5rem; align-items:start; }
+    @media(max-width:760px){ .sv-detail { grid-template-columns:1fr; } }
+    .sv-detail .lead { color:var(--grey-light); line-height:1.8; font-size:1rem; margin-bottom:1.5rem; }
+    .sv-include { list-style:none; padding:0; margin:0; }
+    .sv-include li { padding:0.6rem 0 0.6rem 1.8rem; border-bottom:1px solid var(--border); position:relative; color:var(--grey-light); font-size:0.93rem; }
+    .sv-include li::before { content:'✓'; position:absolute; left:0; color:var(--red); font-weight:800; }
+    .sv-aside { background:var(--dark2); border:1px solid var(--border); padding:1.5rem; }
+    .sv-aside h3 { font-family:'Barlow Condensed',sans-serif; font-size:1.05rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.8rem; }
+    .sv-aside .other a { display:block; color:var(--grey-light); text-decoration:none; padding:0.4rem 0; border-bottom:1px solid var(--border); font-size:0.9rem; }
+    .sv-aside .other a:hover { color:var(--red); }
+</style>`;
+
+app.get('/servicii', async (c) => {
+  const cards = SERVICII_SEO.map((sv) => `<a href="/servicii/${sv.slug}" class="sv-card"><h3>${esc(sv.nume)}</h3><p>${esc(sv.intro.slice(0, 110))}…</p><span class="more">Detalii →</span></a>`).join('');
+  const body = `<section class="hero-small"><div class="section-label">Ce facem</div>
+    <div class="page-title">Serviciile <span>noastre</span></div>
+    <div class="page-subtitle">Service auto complet în București — alege serviciul de care ai nevoie</div></section>
+    <div class="container" style="padding-top:2.5rem;"><div class="sv-grid">${cards}</div>
+    <div class="cta-box" style="text-align:center;padding:2.5rem 1.5rem;background:var(--dark2);border:1px solid var(--border);margin-top:2.5rem;">
+      <div class="section-title">Gata să <span>programezi</span>?</div>
+      <p style="color:var(--grey);margin-bottom:1.5rem;">Fă o programare online în câteva minute.</p>
+      <a href="/rezervare" class="btn btn-primary">Programează-te</a> <a href="/contact" class="btn btn-outline">Contact</a>
+    </div></div>`;
+  return c.html(page({ title: 'Servicii auto București — APG Garage', user: c.get('user'), nav: 'public', pagini: c.get('pagini'), path: '/servicii', description: 'Servicii auto complete în București la APG Garage: revizii, diagnoză, frâne, suspensie, schimb ulei și verificare rampă.', headExtra: SERVICII_STYLE, body }));
+});
+
+app.get('/servicii/:slug', async (c) => {
+  const sv = SERVICII_SEO.find((x) => x.slug === c.req.param('slug'));
+  if (!sv) return c.notFound();
+  const altele = SERVICII_SEO.filter((x) => x.slug !== sv.slug).slice(0, 5);
+  const body = `<section class="hero-small">
+    <div class="breadcrumb"><a href="/">Acasă</a> / <a href="/servicii">Servicii</a> / ${esc(sv.nume)}</div>
+    <div class="section-label">Service auto București</div>
+    <h1 class="page-title">${esc(sv.h1.replace('în București', ''))}<span>${sv.h1.includes('București') ? ' în București' : ''}</span></h1>
+  </section>
+  <div class="container" style="padding-top:2.5rem;"><div class="sv-detail">
+    <div>
+      <p class="lead">${esc(sv.intro)}</p>
+      <div class="section-label">Ce include</div>
+      <ul class="sv-include">${sv.include.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
+      <p style="color:var(--grey-light);line-height:1.8;margin-top:1.5rem;">${esc(sv.extra)}</p>
+      <div style="margin-top:2rem;"><a href="/rezervare" class="btn btn-primary">Programează-te online</a> <a href="/contact" class="btn btn-outline">Întreabă-ne</a></div>
+    </div>
+    <aside class="sv-aside">
+      <h3>Alte servicii</h3>
+      <div class="other">${altele.map((x) => `<a href="/servicii/${x.slug}">${esc(x.nume)}</a>`).join('')}</div>
+      <div style="margin-top:1.2rem;font-size:0.85rem;color:var(--grey);line-height:1.6;">Service auto în București pentru orice marcă. Programări online, prețuri transparente, lucrări cu garanție.</div>
+    </aside>
+  </div></div>`;
+  return c.html(page({ title: `${sv.nume} București — APG Garage`, user: c.get('user'), nav: 'public', pagini: c.get('pagini'), path: `/servicii/${sv.slug}`, description: sv.meta, headExtra: SERVICII_STYLE, body, bodyEnd: serviciuJsonLd(sv) }));
 });
 
 /* ============================ PAGINI LEGALE ============================ */

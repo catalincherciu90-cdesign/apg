@@ -3,7 +3,7 @@ import type { Env, Variables } from './types';
 import { loadUser } from './lib/auth';
 import { getSetari, navVisibility } from './lib/setari';
 import { page, SITE_URL } from './views/layout';
-import publicRoutes from './routes/public';
+import publicRoutes, { SERVICII_SLUGS } from './routes/public';
 import authRoutes from './routes/auth';
 import clientRoutes from './routes/client';
 import adminRoutes from './routes/admin';
@@ -87,6 +87,8 @@ app.get('/sitemap.xml', (c) => {
     { p: '/tractari', pr: '0.7' },
     { p: '/dezmembrari', pr: '0.7' },
     { p: '/contact', pr: '0.6' },
+    { p: '/servicii', pr: '0.8' },
+    ...SERVICII_SLUGS.map((slug) => ({ p: '/servicii/' + slug, pr: '0.7' })),
     { p: '/confidentialitate', pr: '0.3' },
     { p: '/termeni', pr: '0.3' },
     { p: '/cookies', pr: '0.3' },
