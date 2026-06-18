@@ -415,4 +415,39 @@ async function renderContinut(c: AppContext, tab: string, success: string) {
   return c.html(page({ title: 'Conținut site — Admin APG Garage', user, nav: 'admin', currentPath: '/admin/continut', headExtra, body }));
 }
 
+/* ============================ CLIENȚI ============================ */
+app.get('/clienti', async (c) => {
+  const user = c.get('user')!;
+  const { results: clienti } = await c.env.DB.prepare(
+    `SELECT u.id, u.nume, u.email, u.telefon, u.created_at,
+       (SELECT COUNT(*) FROM rezervari r WHERE r.user_id = u.id) as nr_programari,
+       (SELECT COUNT(*) FROM masini m WHERE m.user_id = u.id) as nr_masini
+     FROM users u WHERE u.rol = 'client' ORDER BY u.created_at DESC`,
+  ).all<any>();
+
+  const dRo = (s: string) => String(s ?? '').slice(0, 10).split('-').reverse().join('.');
+  const rows = (clienti ?? []).map((u) => `<tr>
+        <td><strong>${esc(u.nume)}</strong></td>
+        <td><a href="mailto:${esc(u.email)}" style="color:var(--grey-light);text-decoration:none;">${esc(u.email)}</a></td>
+        <td>${u.telefon ? `<a href="tel:${esc(u.telefon)}" style="color:var(--white);text-decoration:none;">${esc(u.telefon)}</a>` : '—'}</td>
+        <td style="text-align:center;">${u.nr_programari}</td>
+        <td style="text-align:center;">${u.nr_masini}</td>
+        <td>${dRo(u.created_at)}</td>
+    </tr>`).join('');
+
+  const lista = (clienti ?? []).length === 0
+    ? `<div class="card" style="text-align:center;color:var(--grey);padding:2rem;">Niciun client înregistrat încă.</div>`
+    : `<div class="card" style="padding:0;overflow-x:auto;"><table>
+        <thead><tr><th>Nume</th><th>Email</th><th>Telefon</th><th style="text-align:center;">Programări</th><th style="text-align:center;">Mașini</th><th>Înregistrat</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
+
+  const body = `<div class="container">
+    <div class="page-title">Conturi <span>clienți</span></div>
+    <div class="page-subtitle">Clienții înregistrați pe site${(clienti ?? []).length ? ` (${clienti!.length})` : ''}.</div>
+    ${lista}
+  </div>`;
+  return c.html(page({ title: 'Clienți — Admin APG Garage', user, nav: 'admin', currentPath: '/admin/clienti', body }));
+});
+
 export default app;
