@@ -23,6 +23,7 @@ export const NOTIF_EVENTS: NotifEvent[] = [
   { key: 'reminder_programare', label: 'Reminder programare (cu o zi înainte)', catre: 'client', descriere: 'Reminder automat trimis clientului cu o zi înainte de programare.' },
   { key: 'reminder_revizie', label: 'Reminder revizie', catre: 'client', descriere: 'Reminder automat când se apropie un an de la ultima revizie.' },
   { key: 'raspuns_piesa_client', label: 'Răspuns cerere piesă', catre: 'client', descriere: 'Răspunsul service-ului la o cerere de piesă din dezmembrări.' },
+  { key: 'mesaj_contact_client', label: 'Confirmare mesaj contact', catre: 'client', descriere: 'Confirmare trimisă clientului că mesajul lui a fost primit.' },
 
   { key: 'cont_nou_admin', label: 'Cont nou înregistrat', catre: 'admin', descriere: 'Alertă către admin când un client nou își creează cont.' },
   { key: 'programare_admin', label: 'Programare nouă', catre: 'admin', descriere: 'Alertă către admin la fiecare programare nouă.' },
@@ -227,6 +228,19 @@ export async function notificareMesajContact(env: Env, nume: string, email: stri
     <p style="white-space:pre-wrap;">${esc(mesaj)}</p>
     <a href="${env.BASE_URL}/admin/mesaje" class="btn">Vezi în admin</a>`;
   await notifica(env, 'mesaj_contact_admin', admini, 'Mesaj nou de pe site — ' + nume, emailTemplate('Mesaj nou din formularul de contact', continut), s);
+
+  // Confirmare către client
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const continutClient = `
+      <p>Bună, <strong>${esc(nume)}</strong>!</p>
+      <p>Am primit mesajul tău și îți mulțumim că ne-ai scris. Revenim cu un răspuns în cel mai scurt timp posibil.</p>
+      <table class="info-table">
+        <tr><td>Mesajul tău</td><td style="white-space:pre-wrap;">${esc(mesaj)}</td></tr>
+      </table>
+      <p>Dacă ai o urgență, ne poți suna direct.</p>
+      <a href="${env.BASE_URL}" class="btn">Înapoi la site</a>`;
+    await notifica(env, 'mesaj_contact_client', email, 'Am primit mesajul tău — APG Garage', emailTemplate('Mesajul tău a fost primit', continutClient), s);
+  }
 }
 
 export async function notificareCerereTractare(
