@@ -186,8 +186,8 @@ export function navAdmin(user: SessionUser | null, current: string): string {
     mobile += `<div class="admin-mob-group">Programări</div><a href="/admin">Toate programările</a><a href="/admin/zi">Programul zilei</a><a href="/admin/blocare">Zile blocate</a>`;
   }
   if (has('servicii')) {
-    groups += `<div class="nav-dropdown"><button class="nav-dropdown-btn ${act(['/admin/servicii', '/admin/preturi'])}">Servicii <span class="arrow">▾</span></button><div class="nav-dropdown-menu">${a('/admin/servicii', 'Gestionare servicii')}${a('/admin/preturi', 'Prețuri')}</div></div>`;
-    mobile += `<div class="admin-mob-group">Servicii</div><a href="/admin/servicii">Gestionare servicii</a><a href="/admin/preturi">Prețuri</a>`;
+    groups += `<div class="nav-dropdown"><button class="nav-dropdown-btn ${act(['/admin/servicii', '/admin/preturi', '/admin/pagini-servicii'])}">Servicii <span class="arrow">▾</span></button><div class="nav-dropdown-menu">${a('/admin/servicii', 'Gestionare servicii')}${a('/admin/preturi', 'Prețuri')}${a('/admin/pagini-servicii', 'Pagini servicii')}</div></div>`;
+    mobile += `<div class="admin-mob-group">Servicii</div><a href="/admin/servicii">Gestionare servicii</a><a href="/admin/preturi">Prețuri</a><a href="/admin/pagini-servicii">Pagini servicii</a>`;
   }
   if (has('tractari')) {
     groups += `<div class="nav-dropdown"><button class="nav-dropdown-btn ${act(['/admin/tractari'])}">Tractări <span class="arrow">▾</span></button><div class="nav-dropdown-menu">${a('/admin/tractari', 'Cereri tractare')}</div></div>`;

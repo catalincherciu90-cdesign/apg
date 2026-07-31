@@ -13,6 +13,7 @@ import mesaje from './admin/mesaje';
 import notificari from './admin/notificari';
 import recenzii from './admin/recenzii';
 import statistici from './admin/statistici';
+import serviciiSeo from './admin/servicii-seo';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -63,6 +64,7 @@ app.use('*', async (c, next) => {
 
 // Gardieni pe secțiuni (Permisiuni::requireAccess / isSuperAdmin)
 app.use('/servicii', requireAccess('servicii'));
+app.use('/pagini-servicii', requireAccess('servicii'));
 app.use('/tractari', requireAccess('tractari'));
 app.use('/dezmembrari', requireAccess('dezmembrari'));
 app.use('/cereri-piese', requireAccess('dezmembrari'));
@@ -89,5 +91,6 @@ app.route('/', mesaje); // /admin/mesaje
 app.route('/', notificari); // /admin/notificari
 app.route('/', recenzii); // /admin/recenzii
 app.route('/', statistici); // /admin/statistici
+app.route('/', serviciiSeo); // /admin/pagini-servicii
 
 export default app;

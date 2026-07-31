@@ -3,7 +3,8 @@ import type { Env, Variables } from './types';
 import { loadUser } from './lib/auth';
 import { getSetari, navVisibility } from './lib/setari';
 import { page, SITE_URL, siteFooter } from './views/layout';
-import publicRoutes, { SERVICII_SLUGS } from './routes/public';
+import publicRoutes from './routes/public';
+import { getToateSeo } from './lib/serviciiSeo';
 import authRoutes from './routes/auth';
 import clientRoutes from './routes/client';
 import adminRoutes from './routes/admin';
@@ -72,8 +73,10 @@ app.get('/robots.txt', (c) =>
     `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /dashboard\nDisallow: /masini\nDisallow: /rezervare\nDisallow: /deviz\nDisallow: /recenzie\nDisallow: /seteaza-cont\nDisallow: /login\nDisallow: /register\nDisallow: /logout\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
   ),
 );
-app.get('/sitemap.xml', (c) => {
+app.get('/sitemap.xml', async (c) => {
   const today = new Date().toISOString().slice(0, 10);
+  let slugs: string[] = [];
+  try { slugs = (await getToateSeo(c.env, true)).map((s) => s.slug); } catch { /* tabel indisponibil */ }
   const pages = [
     { p: '/', pr: '1.0' },
     { p: '/despre', pr: '0.7' },
@@ -82,7 +85,7 @@ app.get('/sitemap.xml', (c) => {
     { p: '/dezmembrari', pr: '0.7' },
     { p: '/contact', pr: '0.6' },
     { p: '/servicii', pr: '0.8' },
-    ...SERVICII_SLUGS.map((slug) => ({ p: '/servicii/' + slug, pr: '0.7' })),
+    ...slugs.map((slug) => ({ p: '/servicii/' + slug, pr: '0.7' })),
     { p: '/confidentialitate', pr: '0.3' },
     { p: '/termeni', pr: '0.3' },
     { p: '/cookies', pr: '0.3' },
