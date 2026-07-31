@@ -1,4 +1,4 @@
-const CACHE_NAME = 'apg-garage-v7';
+const CACHE_NAME = 'apg-garage-v8';
 const CACHE_URLS = [
     '/',
     '/css/style.css',
@@ -27,6 +27,35 @@ self.addEventListener('activate', function(e) {
         })
     );
     self.clients.claim();
+});
+
+// Notificare push (programare nouă). Mesaj fix (push fără payload).
+self.addEventListener('push', function(e) {
+    var titlu = 'APG Garage';
+    var corp = 'Ai o programare nouă. Deschide adminul pentru detalii.';
+    if (e.data) {
+        try { var d = e.data.json(); titlu = d.title || titlu; corp = d.body || corp; } catch (err) {}
+    }
+    e.waitUntil(self.registration.showNotification(titlu, {
+        body: corp,
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-192x192.png',
+        tag: 'programare-noua',
+        data: { url: '/admin' }
+    }));
+});
+
+self.addEventListener('notificationclick', function(e) {
+    e.notification.close();
+    var url = (e.notification.data && e.notification.data.url) || '/admin';
+    e.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].url.indexOf('/admin') !== -1 && 'focus' in list[i]) return list[i].focus();
+            }
+            return clients.openWindow(url);
+        })
+    );
 });
 
 self.addEventListener('fetch', function(e) {
