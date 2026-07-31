@@ -9,6 +9,7 @@ import { getSetari } from '../lib/setari';
 import { verifyPassword, hashPassword } from '../lib/password';
 import { createSessionCookie } from '../lib/session';
 import { trimitePush } from '../lib/push';
+import { MARCI_DATALIST } from '../data/marci';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // Restrâns la rutele client (un `use('*')` ar deveni global când e montat la `/`)
@@ -252,7 +253,7 @@ async function renderMasini(c: AppContext, error: string, success: string) {
                 <input type="hidden" name="actiune" value="adauga">
                 <div class="form-group"><label>Număr înmatriculare *</label><input type="text" name="nr_inmatriculare" placeholder="ex: B 123 ABC" style="text-transform:uppercase;" required></div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
-                    <div class="form-group"><label>Producător *</label><input type="text" name="producator" placeholder="ex: Volkswagen" required></div>
+                    <div class="form-group"><label>Producător *</label><input type="text" name="producator" list="marci-list" placeholder="ex: Volkswagen" required>${MARCI_DATALIST}</div>
                     <div class="form-group"><label>Model *</label><input type="text" name="model" placeholder="ex: Golf 7" required></div>
                 </div>
                 <div class="form-group"><label>Serie caroserie (VIN)</label><input type="text" name="serie_caroserie" placeholder="ex: WVWZZZ1KZ..." style="text-transform:uppercase;"></div>
@@ -267,7 +268,7 @@ async function renderMasini(c: AppContext, error: string, success: string) {
         <input type="hidden" name="actiune" value="editeaza"><input type="hidden" name="masina_id" id="edit-id">
         <div class="form-group"><label>Număr înmatriculare *</label><input type="text" name="nr_inmatriculare" id="edit-nr" style="text-transform:uppercase;" required></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
-            <div class="form-group"><label>Producător *</label><input type="text" name="producator" id="edit-prod" required></div>
+            <div class="form-group"><label>Producător *</label><input type="text" name="producator" id="edit-prod" list="marci-list" required></div>
             <div class="form-group"><label>Model *</label><input type="text" name="model" id="edit-model" required></div>
         </div>
         <div class="form-group"><label>Serie caroserie (VIN)</label><input type="text" name="serie_caroserie" id="edit-serie" style="text-transform:uppercase;"></div>
@@ -439,7 +440,7 @@ async function renderRezervare(c: AppContext, error: string, success: boolean, v
                 ${masinaSelect}
                 <div class="form-group"><label>Număr înmatriculare *</label><input type="text" name="nr_inmatriculare" value="${esc(v.nr_inmatriculare ?? '')}" placeholder="ex: B 123 ABC" style="text-transform:uppercase;" required></div>
                 <div class="masina-grid">
-                    <div class="form-group"><label>Producător *</label><input type="text" name="producator" value="${esc(v.producator ?? '')}" placeholder="ex: Volkswagen" required></div>
+                    <div class="form-group"><label>Producător *</label><input type="text" name="producator" list="marci-list" value="${esc(v.producator ?? '')}" placeholder="ex: Volkswagen" required>${MARCI_DATALIST}</div>
                     <div class="form-group"><label>Model *</label><input type="text" name="model" value="${esc(v.model ?? '')}" placeholder="ex: Golf 7" required></div>
                 </div>
                 <div class="section-divider">Serviciu</div>

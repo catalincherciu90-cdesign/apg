@@ -5,6 +5,7 @@ import { esc, dateRo, timeShort, serviciuLabel, STATUS_LABEL, todayRo, addDays }
 import { hashPassword } from '../../lib/password';
 import { ensureRampaColumns } from '../../lib/masini';
 import { notificareCereRecenzie } from '../../lib/notificari';
+import { MARCI_DATALIST } from '../../data/marci';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -402,7 +403,7 @@ async function renderZi(c: AppContext, data: string, error: string, success: str
         </div>
         <div class="fg3">
           <div class="form-group"><label>Nr. înmatriculare *</label><input type="text" name="nr_inmatriculare" style="text-transform:uppercase;" placeholder="B 123 ABC"></div>
-          <div class="form-group"><label>Producător *</label><input type="text" name="producator" placeholder="VW"></div>
+          <div class="form-group"><label>Producător *</label><input type="text" name="producator" list="marci-list" placeholder="VW">${MARCI_DATALIST}</div>
           <div class="form-group"><label>Model *</label><input type="text" name="model" placeholder="Golf"></div>
         </div>
         <div class="fg3">
