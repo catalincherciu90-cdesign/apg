@@ -239,6 +239,17 @@ export async function notificareCereRecenzie(
   await notifica(env, 'cere_recenzie_client', email, 'Cum a fost la APG Garage? Lasă-ne o părere', emailTemplate('Spune-ne părerea ta', continut));
 }
 
+// Invitație pentru angajat nou — se trimite mereu (transacțional, fără toggle).
+export async function notificareInvitatieAngajat(env: Env, email: string, nume: string, uid: number, token: string) {
+  const url = `${env.BASE_URL}/seteaza-cont?uid=${uid}&t=${token}`;
+  const continut = `
+    <p>Bună, <strong>${esc(nume)}</strong>!</p>
+    <p>Ai fost adăugat ca membru al echipei <strong>APG Garage</strong>. Apasă butonul de mai jos ca să-ți setezi parola și să-ți activezi contul.</p>
+    <a href="${esc(url)}" class="btn">Setează-ți parola</a>
+    <p style="font-size:12px;color:#888;margin-top:16px;">Dacă nu te așteptai la acest email, ignoră-l.</p>`;
+  await sendRaw(env, email, 'Invitație APG Garage — setează-ți contul', emailTemplate('Bine ai venit în echipă', continut));
+}
+
 export async function notificareMesajContact(env: Env, nume: string, email: string, telefon: string, mesaj: string) {
   const s = await getSetari(env);
   const admini = getAdminEmails(s, env);
