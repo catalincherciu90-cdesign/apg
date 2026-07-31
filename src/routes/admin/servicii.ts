@@ -212,6 +212,14 @@ app.post('/preturi', async (c) => {
       await c.env.DB.prepare('UPDATE preturi SET categorie=?, nume=?, pret_de_la=?, include_piese=?, nota=? WHERE id=?').bind(categorie, nume, pret, includePiese, nota, id).run();
       success = 'Prețul a fost actualizat.';
     }
+  } else if (actiune === 'redenumeste_categorie') {
+    const veche = String(form.get('categorie_veche') ?? '').trim();
+    const noua = String(form.get('categorie_noua_nume') ?? '').trim();
+    if (!veche || !noua) error = 'Alege categoria și scrie noua denumire.';
+    else {
+      await c.env.DB.prepare('UPDATE preturi SET categorie = ? WHERE categorie = ?').bind(noua, veche).run();
+      success = `Categoria „${veche}" a fost redenumită în „${noua}".`;
+    }
   } else if (actiune === 'sterge') {
     await c.env.DB.prepare('DELETE FROM preturi WHERE id=?').bind(parseInt(String(form.get('pret_id') ?? '0'), 10)).run();
     success = 'Prețul a fost șters.';
@@ -270,6 +278,14 @@ async function renderPreturi(c: AppContext, error: string, success: string) {
             <button type="submit" class="btn btn-primary">Adaugă prețul</button>
         </form>
     </div>
+    ${categorii.length ? `<div class="adauga-form"><h3>✎ Redenumește o categorie</h3>
+        <form method="POST" style="display:flex;gap:0.8rem;flex-wrap:wrap;align-items:flex-end;"><input type="hidden" name="actiune" value="redenumeste_categorie">
+            <div class="form-group" style="margin:0;flex:1;min-width:200px;"><label>Categoria actuală</label><select name="categorie_veche">${catOptions}</select></div>
+            <div class="form-group" style="margin:0;flex:1;min-width:200px;"><label>Denumire nouă</label><input type="text" name="categorie_noua_nume" placeholder="ex: Reparații și întreținere sisteme de frânare" required></div>
+            <button type="submit" class="btn btn-primary" style="margin-bottom:0;">Redenumește</button>
+        </form>
+        <div style="font-size:0.78rem;color:var(--grey);margin-top:0.6rem;">Redenumește toate prețurile dintr-o categorie deodată.</div>
+    </div>` : ''}
     ${sectiuni}
     <div class="alert alert-info" style="font-size:0.85rem;">Trage rândurile cu ⠿ pentru a schimba ordinea. Salvarea e automată.</div>
   </div>
