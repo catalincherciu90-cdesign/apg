@@ -214,6 +214,7 @@ export function navAdmin(user: SessionUser | null, current: string): string {
     <button class="hamburger" id="admin-hamburger" aria-label="Meniu"><span></span><span></span><span></span></button>
 </nav>
 <div class="mobile-menu" id="admin-mobile-menu">
+    <button type="button" id="pwa-install-btn" class="pwa-install-btn" style="display:none;">📲 Instalează aplicația</button>
     ${mobile}
     <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:0.8rem;"><a href="/">Site public</a><a href="/logout">Ieșire</a></div>
 </div>
@@ -232,12 +233,14 @@ export function navAdmin(user: SessionUser | null, current: string): string {
 .nav-dropdown-menu a:hover, .nav-dropdown-menu a.active { background: rgba(192,57,43,0.1); color: var(--red); padding-left: 1.5rem; }
 .admin-mob-group { font-size:0.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);padding:0.8rem 0 0.5rem;border-bottom:1px solid var(--border);margin-top:0.5rem;margin-bottom:0.3rem; }
 #admin-mobile-menu .admin-mob-group:first-child { margin-top:0; }
+.pwa-install-btn { width:100%; background:var(--red); color:var(--black); border:none; font-family:'Barlow Condensed',sans-serif; font-weight:800; letter-spacing:1px; text-transform:uppercase; font-size:1rem; padding:0.9rem; cursor:pointer; margin-bottom:1rem; }
 </style>
 <script>
 (function(){var b=document.getElementById('admin-hamburger'),m=document.getElementById('admin-mobile-menu');if(b&&m){b.addEventListener('click',function(){var o=m.classList.toggle('open');b.classList.toggle('open',o);document.body.style.overflow=o?'hidden':'';});m.querySelectorAll('a').forEach(function(l){l.addEventListener('click',function(){m.classList.remove('open');b.classList.remove('open');document.body.style.overflow='';});});window.addEventListener('resize',function(){if(window.innerWidth>768){m.classList.remove('open');b.classList.remove('open');document.body.style.overflow='';}});}
 document.querySelectorAll('.nav-dropdown-btn').forEach(function(d){d.addEventListener('click',function(e){e.stopPropagation();var p=this.closest('.nav-dropdown'),o=p.classList.contains('open');document.querySelectorAll('.nav-dropdown').forEach(function(x){x.classList.remove('open');});if(!o)p.classList.add('open');});});
 document.addEventListener('click',function(){document.querySelectorAll('.nav-dropdown').forEach(function(d){d.classList.remove('open');});});
 document.querySelectorAll('.nav-dropdown-menu').forEach(function(m){m.addEventListener('click',function(e){e.stopPropagation();});});})();
+(function(){var ib=document.getElementById('pwa-install-btn');if(!ib)return;var evt=null;var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);var standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;if(standalone)return;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();evt=e;ib.style.display='block';});if(isIOS)ib.style.display='block';ib.addEventListener('click',function(){if(evt){evt.prompt();evt.userChoice.then(function(){evt=null;ib.style.display='none';});}else if(isIOS){alert('Instalează aplicația: apasă butonul Partajare (□↑) din Safari, apoi „Adaugă pe ecranul principal".');}});window.addEventListener('appinstalled',function(){ib.style.display='none';});})();
 </script>`;
 }
 
