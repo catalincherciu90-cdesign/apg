@@ -8,6 +8,7 @@ import { ensureDevizDecizie } from '../lib/deviz';
 import { getSetari } from '../lib/setari';
 import { verifyPassword, hashPassword } from '../lib/password';
 import { createSessionCookie } from '../lib/session';
+import { trimitePush } from '../lib/push';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // Restrâns la rutele client (un `use('*')` ar deveni global când e montat la `/`)
@@ -364,6 +365,7 @@ app.post('/rezervare', async (c) => {
         .bind(user.uid, nr, producator, model, serviciu, descriere, data, ora + ':00', durata).run();
       const u = await c.env.DB.prepare('SELECT email FROM users WHERE id = ?').bind(user.uid).first<{ email: string }>();
       if (u) c.executionCtx.waitUntil(notificareProgramareNoua(c.env, user.nume, u.email, nr, producator, model, serviciu, data, ora + ':00', durata));
+      c.executionCtx.waitUntil(trimitePush(c.env));
       return renderRezervare(c, '', true, {});
     }
   }

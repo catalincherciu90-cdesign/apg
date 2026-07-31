@@ -15,6 +15,10 @@ export interface Env {
   GMAIL_CLIENT_SECRET?: string;
   GMAIL_REFRESH_TOKEN?: string;
   GMAIL_SENDER?: string; // ex. "APG Garage <notificari.apggarage@gmail.com>"
+  // Web Push (VAPID) pentru notificări pe telefon
+  VAPID_PUBLIC?: string;
+  VAPID_PRIVATE?: string;
+  VAPID_SUBJECT?: string;
 }
 
 export interface SendResult {

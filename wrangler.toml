@@ -27,6 +27,10 @@ MAIL_ADMIN = "notificari.apggarage@gmail.com"
 MAIL_REPLY_TO = "notificari.apggarage@gmail.com"
 # Expeditorul când se trimite prin Gmail API (trebuie să fie contul Gmail autorizat)
 GMAIL_SENDER = "APG Garage <notificari.apggarage@gmail.com>"
+# Web Push (VAPID) — notificări pe telefon la programări noi
+VAPID_PUBLIC = "BF4MSD_7lCEQA1rU0nIANtAEUxBOHCrhUz3gWiBPfFXGJqpyo-R5lYx6j653ySeYvi7_ousnRAD7GsDrkgEsBQ0"
+VAPID_PRIVATE = "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgbQsopQyQZf2q6_uh6tpOJb4k150UlKB4DjdmyFEcYuChRANCAAReDEg_-5QhEANa1NJyADbQBFMQThwq4VM94FogT3xVxiaqcqPkeZWMeo-ud8knmL4u_6LrJ0QA-xrA65IBLAUN"
+VAPID_SUBJECT = "mailto:notificari.apggarage@gmail.com"
 
 # Secrete (a se seta cu `wrangler secret put`):
 #   SESSION_SECRET        — cheie pentru semnarea cookie-urilor de sesiune

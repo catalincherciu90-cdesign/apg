@@ -6,6 +6,7 @@ import { getSetari, setSetare } from '../../lib/setari';
 import { sendRaw, emailTemplate } from '../../lib/mailer';
 import { NOTIF_EVENTS, notifActiv, getAdminEmails, ensureNotifLog } from '../../lib/notificari';
 import { gmailConfigured } from '../../lib/gmail';
+import { saveSub } from '../../lib/push';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -82,6 +83,16 @@ app.post('/notificari', async (c) => {
   return renderNotificari(c, error, success);
 });
 
+app.post('/push-subscribe', async (c) => {
+  try {
+    const b = await c.req.json<any>();
+    if (b && b.endpoint) await saveSub(c.env, String(b.endpoint), String(b.p256dh ?? ''), String(b.auth ?? ''));
+    return c.json({ ok: true });
+  } catch {
+    return c.json({ ok: false }, 400);
+  }
+});
+
 app.get('/notificari', async (c) => renderNotificari(c, '', ''));
 
 async function renderNotificari(c: AppContext, error: string, success: string) {
@@ -129,6 +140,14 @@ async function renderNotificari(c: AppContext, error: string, success: string) {
         <div class="form-group" style="margin:0;flex:1;min-width:220px;"><label>Trimite testul către</label><input type="email" name="test_email" value="${esc(admini[0] ?? '')}" placeholder="email@exemplu.ro"></div>
         <button type="submit" class="btn btn-primary" style="margin-bottom:0;">Trimite email de test</button>
       </form>
+    </div>
+
+    <div class="notif-card">
+      <h3>Notificări pe telefon (push)</h3>
+      <p class="hint">Primești o notificare pe acest dispozitiv când intră o programare nouă. Deschide adminul pe telefon și apasă butonul de mai jos, apoi acceptă permisiunea. Pe iPhone trebuie întâi să instalezi aplicația pe ecranul principal.</p>
+      <button type="button" class="btn btn-primary" id="push-btn">Activează notificările pe acest telefon</button>
+      <span id="push-status" style="margin-left:0.8rem;font-size:0.85rem;color:var(--grey);"></span>
+      <script>(function(){var V='${esc(c.env.VAPID_PUBLIC || '')}';var btn=document.getElementById('push-btn'),st=document.getElementById('push-status');if(!btn)return;function u2a(b){var p='='.repeat((4-b.length%4)%4);var s=(b+p).replace(/-/g,'+').replace(/_/g,'/');var r=atob(s);var a=new Uint8Array(r.length);for(var i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;}if(!('serviceWorker' in navigator)||!('PushManager' in window)||!V){btn.disabled=true;st.textContent='Nu sunt suportate pe acest browser.';return;}btn.addEventListener('click',function(){st.textContent='Se activează...';Notification.requestPermission().then(function(p){if(p!=='granted'){st.textContent='Permisiune refuzată.';return;}navigator.serviceWorker.ready.then(function(reg){return reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u2a(V)});}).then(function(sub){var j=sub.toJSON();return fetch('/admin/push-subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:sub.endpoint,p256dh:j.keys&&j.keys.p256dh,auth:j.keys&&j.keys.auth})});}).then(function(){st.textContent='✓ Activat pe acest telefon!';st.style.color='#2ecc71';}).catch(function(e){st.textContent='Eroare: '+e.message;});});});})();</script>
     </div>
 
     <div class="notif-card">
