@@ -8,6 +8,8 @@ import { LABELS, SECTIUNI } from '../../lib/permisiuni';
 import { getSetari, setSetare, PAGINI_TOGGLE } from '../../lib/setari';
 import { createSessionCookie } from '../../lib/session';
 import { ensureRampaColumns } from '../../lib/masini';
+import { inviteToken } from '../../lib/invite';
+import { notificareInvitatieAngajat } from '../../lib/notificari';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 const jsAttr = (s: string) => esc(s).replace(/'/g, '&#039;');
@@ -63,18 +65,28 @@ app.post('/angajati', async (c) => {
     const email = String(form.get('email') ?? '').trim();
     const telefon = String(form.get('telefon') ?? '').trim();
     const parola = String(form.get('parola') ?? '');
+    const invita = form.get('invita') !== null;
     const perm = getAll(form, 'permisiuni[]');
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if (!nume || !email || !parola) error = 'Completează numele, emailul și parola.';
+    if (!nume || !email) error = 'Completează numele și emailul.';
     else if (!emailValid) error = 'Adresa de email nu este validă.';
-    else if (parola.length < 6) error = 'Parola trebuie să aibă minim 6 caractere.';
+    else if (!invita && parola.length < 6) error = 'Parola trebuie să aibă minim 6 caractere (sau trimite invitație prin email).';
     else {
       const exists = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
       if (exists) error = 'Există deja un cont cu această adresă de email.';
       else {
-        const hash = await hashPassword(parola);
-        await c.env.DB.prepare(`INSERT INTO users (nume, email, parola, telefon, rol, permisiuni) VALUES (?, ?, ?, ?, 'angajat', ?)`).bind(nume, email, hash, telefon, JSON.stringify(perm)).run();
-        success = 'Contul de angajat a fost creat.';
+        // La invitație, contul primește o parolă aleatoare (nefolosibilă) până
+        // când angajatul își setează singur parola prin linkul din email.
+        const hash = await hashPassword(invita ? Math.random().toString(36).slice(2) + Date.now() : parola);
+        const res = await c.env.DB.prepare(`INSERT INTO users (nume, email, parola, telefon, rol, permisiuni) VALUES (?, ?, ?, ?, 'angajat', ?)`).bind(nume, email, hash, telefon, JSON.stringify(perm)).run();
+        if (invita) {
+          const uid = Number(res.meta.last_row_id);
+          const token = await inviteToken(c.env, uid, hash);
+          c.executionCtx.waitUntil(notificareInvitatieAngajat(c.env, email, nume, uid, token));
+          success = 'Contul a fost creat și invitația a fost trimisă pe email. Angajatul își va seta singur parola.';
+        } else {
+          success = 'Contul de angajat a fost creat.';
+        }
       }
     }
   } else if (actiune === 'permisiuni') {
@@ -170,10 +182,12 @@ async function renderAngajati(c: AppContext, error: string, success: string) {
                 <div class="form-group"><label>Nume complet *</label><input type="text" name="nume" placeholder="ex: Ion Popescu" required></div>
                 <div class="form-group"><label>Email *</label><input type="email" name="email" placeholder="angajat@apg-garage.ro" required></div>
                 <div class="form-group"><label>Telefon</label><input type="tel" name="telefon" placeholder="07xx xxx xxx"></div>
-                <div class="form-group"><label>Parolă * (minim 6 caractere)</label><input type="password" name="parola" required></div>
+                <div class="form-group" id="parola-wrap"><label>Parolă (minim 6 caractere)</label><input type="password" name="parola" id="parola-nou" minlength="6"></div>
             </div>
+            <label class="perm-item" style="margin-bottom:0.8rem;display:inline-flex;"><input type="checkbox" name="invita" id="invita-chk" value="1" checked> Trimite invitație pe email (angajatul își setează singur parola)</label>
             <div class="form-group"><label style="margin-bottom:0.6rem;">Acces la secțiuni</label><div class="perm-grid" id="perm-grid-nou">${permGridNou}</div></div>
             <button type="submit" class="btn btn-primary">Creează contul</button>
+            <script>(function(){var chk=document.getElementById('invita-chk'),w=document.getElementById('parola-wrap'),p=document.getElementById('parola-nou');function sync(){if(!chk)return;w.style.display=chk.checked?'none':'';if(p)p.required=!chk.checked;}if(chk){chk.addEventListener('change',sync);sync();}})();</script>
         </form>
     </div>
     ${(angajati ?? []).length === 0 ? `<div class="card" style="text-align:center;color:var(--grey);padding:2rem;">Niciun angajat adăugat încă.</div>` : carduri}
