@@ -15,7 +15,6 @@ const HEAD_META = `
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="APG Garage">
-    <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="/logo.png">
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
     <script>if("serviceWorker"in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js");});}</script>
@@ -61,10 +60,14 @@ export function page(opts: PageOpts): string {
     <meta name="twitter:title" content="${esc(opts.title)}">
     <meta name="twitter:description" content="${esc(desc)}">
     <meta name="twitter:image" content="${esc(ogImg)}">`;
+  // Paginile de admin folosesc un manifest separat (pornește direct în /admin
+  // când aplicația e instalată din admin).
+  const manifestHref = nav === 'admin' ? '/manifest-admin.json' : '/manifest.json';
   return `<!DOCTYPE html>
 <html lang="ro">
 <head>
 ${HEAD_META}
+    <link rel="manifest" href="${manifestHref}">
     <title>${opts.title}</title>${seo}
 ${opts.headExtra ?? ''}
 </head>
