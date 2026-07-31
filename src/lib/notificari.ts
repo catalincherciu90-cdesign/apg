@@ -50,6 +50,14 @@ export function getAdminEmails(s: Record<string, string>, env: Env): string[] {
     .filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
 }
 
+// Emailurile tuturor conturilor de tip angajat (pentru alerte către echipă).
+export async function getAngajatiEmails(env: Env): Promise<string[]> {
+  const { results } = await env.DB.prepare(`SELECT email FROM users WHERE rol = 'angajat' AND email IS NOT NULL AND email != ''`).all<{ email: string }>();
+  return (results ?? [])
+    .map((r) => String(r.email).trim())
+    .filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && !e.startsWith('walkin.'));
+}
+
 /* ============================ JURNAL ============================ */
 let logEnsured = false;
 export async function ensureNotifLog(env: Env): Promise<void> {
@@ -149,7 +157,8 @@ export async function notificareProgramareNoua(
   durata: number,
 ) {
   const s = await getSetari(env);
-  const admini = getAdminEmails(s, env);
+  // Alerta de programare nouă merge la adresa/adresele de admin + la toți angajații
+  const admini = [...new Set([...getAdminEmails(s, env), ...(await getAngajatiEmails(env))])];
   const serviciuText = servLabel(serviciu);
   const [y, m, d] = data.split('-');
   const dataText = `${d}.${m}.${y}`;
