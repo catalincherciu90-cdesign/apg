@@ -7,6 +7,7 @@ import { notificareMesajContact, notificareCerereTractare, notificareCererePiesa
 import { ensureMesaje } from '../lib/mesaje';
 import { ensureRecenzii, stele, verifyReviewToken, numeScurt } from '../lib/recenzii';
 import { getToateSeo, getSeoBySlug, type ServiciuSeo } from '../lib/serviciiSeo';
+import { ensurePretRacire } from '../lib/preturiSeed';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -249,6 +250,7 @@ const PRETURI_STYLE = `<style>
 app.get('/preturi', async (c) => {
   const user = c.get('user');
   if (!paginaActiva(await getSetari(c.env), 'pagina_preturi')) return paginaIndisponibila(c);
+  await ensurePretRacire(c.env);
   const { results } = await c.env.DB.prepare('SELECT * FROM preturi WHERE activ = 1 ORDER BY ordine ASC, id ASC').all<any>();
   const grouped = new Map<string, any[]>();
   for (const p of results ?? []) {

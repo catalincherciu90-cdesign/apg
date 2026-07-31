@@ -3,6 +3,7 @@ import type { Env, Variables, AppContext } from '../../types';
 import { page } from '../../views/layout';
 import { esc, numberFormat } from '../../lib/format';
 import { parseOrdine } from '../../lib/form';
+import { ensurePretRacire } from '../../lib/preturiSeed';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -231,6 +232,7 @@ app.get('/preturi', async (c) => renderPreturi(c, '', ''));
 
 async function renderPreturi(c: AppContext, error: string, success: string) {
   const user = c.get('user')!;
+  await ensurePretRacire(c.env);
   const { results: preturi } = await c.env.DB.prepare('SELECT * FROM preturi ORDER BY ordine ASC, id ASC').all<any>();
   const categorii = [...new Set((preturi ?? []).map((p) => p.categorie))];
   const grouped = new Map<string, any[]>();
