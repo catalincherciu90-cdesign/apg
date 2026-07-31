@@ -208,6 +208,7 @@ export function navAdmin(user: SessionUser | null, current: string): string {
     <a href="/admin" class="nav-logo" style="display:inline-flex;align-items:center;gap:0.6rem;"><img src="/logo.png" alt="A.P.G. Active shop" style="height:42px;width:auto;display:block;"><span>APG <span>Garage</span> <span style="font-size:0.7rem;color:#555;letter-spacing:1px;font-weight:400;">ADMIN</span></span></a>
     <div class="nav-links" id="admin-nav-links">
         ${groups}
+        <a href="/admin/ghid" style="color:var(--grey);font-size:0.85rem;letter-spacing:1px;text-transform:uppercase;">Ghid</a>
         <a href="/" style="color:var(--grey);font-size:0.85rem;letter-spacing:1px;text-transform:uppercase;">Site</a>
         <a href="/logout" style="color:var(--grey);font-size:0.85rem;letter-spacing:1px;text-transform:uppercase;">Ieșire</a>
     </div>
@@ -216,7 +217,7 @@ export function navAdmin(user: SessionUser | null, current: string): string {
 <div class="mobile-menu" id="admin-mobile-menu">
     <button type="button" id="pwa-install-btn" class="pwa-install-btn" style="display:none;">📲 Instalează aplicația</button>
     ${mobile}
-    <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:0.8rem;"><a href="/">Site public</a><a href="/logout">Ieșire</a></div>
+    <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:0.8rem;"><a href="/admin/ghid">📘 Ghid admin</a><a href="/">Site public</a><a href="/logout">Ieșire</a></div>
 </div>
 <style>
 #admin-nav { background: var(--black); border-bottom: 2px solid var(--red); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 200; }
