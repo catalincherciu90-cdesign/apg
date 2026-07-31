@@ -8,7 +8,7 @@ import { LABELS, SECTIUNI } from '../../lib/permisiuni';
 import { getSetari, setSetare, PAGINI_TOGGLE } from '../../lib/setari';
 import { createSessionCookie } from '../../lib/session';
 import { ensureRampaColumns } from '../../lib/masini';
-import { inviteToken } from '../../lib/invite';
+import { inviteToken, ensureContActivat } from '../../lib/invite';
 import { notificareInvitatieAngajat } from '../../lib/notificari';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -81,6 +81,8 @@ app.post('/angajati', async (c) => {
         const res = await c.env.DB.prepare(`INSERT INTO users (nume, email, parola, telefon, rol, permisiuni) VALUES (?, ?, ?, ?, 'angajat', ?)`).bind(nume, email, hash, telefon, JSON.stringify(perm)).run();
         if (invita) {
           const uid = Number(res.meta.last_row_id);
+          await ensureContActivat(c.env);
+          await c.env.DB.prepare('UPDATE users SET cont_activat = 0 WHERE id = ?').bind(uid).run();
           const token = await inviteToken(c.env, uid, hash);
           c.executionCtx.waitUntil(notificareInvitatieAngajat(c.env, email, nume, uid, token));
           success = 'Contul a fost creat și invitația a fost trimisă pe email. Angajatul își va seta singur parola.';
@@ -135,7 +137,8 @@ app.get('/angajati', async (c) => renderAngajati(c, '', ''));
 
 async function renderAngajati(c: AppContext, error: string, success: string) {
   const user = c.get('user')!;
-  const { results: angajati } = await c.env.DB.prepare(`SELECT id, nume, email, telefon, permisiuni, created_at FROM users WHERE rol = 'angajat' ORDER BY created_at DESC`).all<any>();
+  await ensureContActivat(c.env);
+  const { results: angajati } = await c.env.DB.prepare(`SELECT id, nume, email, telefon, permisiuni, created_at, cont_activat FROM users WHERE rol = 'angajat' ORDER BY created_at DESC`).all<any>();
   const sectiuni = Object.entries(LABELS);
 
   const permGridNou = sectiuni.map(([key, label]) =>
@@ -154,7 +157,8 @@ async function renderAngajati(c: AppContext, error: string, success: string) {
     const dataRo = String(a.created_at).slice(0, 10).split('-').reverse().join('.');
     return `<div class="angajat-card ${activ ? 'activ' : 'inactiv'}">
       <div class="angajat-header">
-        <div class="angajat-info"><h3>${esc(a.nume)}${isSuper ? ` <span style="font-size:0.7rem;color:#f0a500;background:#2a2000;padding:0.1rem 0.5rem;letter-spacing:1px;vertical-align:middle;">SUPERADMIN</span>` : ''}</h3>
+        <div class="angajat-info"><h3>${esc(a.nume)}${isSuper ? ` <span style="font-size:0.7rem;color:#f0a500;background:#2a2000;padding:0.1rem 0.5rem;letter-spacing:1px;vertical-align:middle;">SUPERADMIN</span>` : ''}
+            ${a.cont_activat === 0 ? '<span style="font-size:0.65rem;color:#f0a500;background:#2a2000;padding:0.12rem 0.5rem;letter-spacing:1px;text-transform:uppercase;vertical-align:middle;">⏳ Invitație în așteptare</span>' : '<span style="font-size:0.65rem;color:#2ecc71;background:#0b2c13;padding:0.12rem 0.5rem;letter-spacing:1px;text-transform:uppercase;vertical-align:middle;">✓ Parolă setată</span>'}</h3>
             <div class="meta">${esc(a.email)}${a.telefon ? ' · ' + esc(a.telefon) : ''} · Creat: ${dataRo}</div>
         </div>
         <span class="badge ${activ ? 'badge-confirmat' : 'badge-respins'}">${activ ? 'Activ' : 'Dezactivat'}</span>

@@ -5,7 +5,7 @@ import { esc } from '../lib/format';
 import { verifyPassword, hashPassword } from '../lib/password';
 import { createSessionCookie, destroySession } from '../lib/session';
 import { notificareContNou } from '../lib/notificari';
-import { inviteToken } from '../lib/invite';
+import { inviteToken, ensureContActivat } from '../lib/invite';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -189,7 +189,8 @@ app.post('/seteaza-cont', async (c) => {
   }
 
   const hash = await hashPassword(parola);
-  await c.env.DB.prepare('UPDATE users SET nume = ?, telefon = ?, parola = ? WHERE id = ?').bind(nume, telefon, hash, uid).run();
+  await ensureContActivat(c.env);
+  await c.env.DB.prepare('UPDATE users SET nume = ?, telefon = ?, parola = ?, cont_activat = 1 WHERE id = ?').bind(nume, telefon, hash, uid).run();
   // Autentificare automată după activare
   const full = await c.env.DB.prepare('SELECT id, rol, nume, permisiuni FROM users WHERE id = ?').bind(uid).first<any>();
   let perms: string[] = [];

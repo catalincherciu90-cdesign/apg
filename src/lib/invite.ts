@@ -12,3 +12,16 @@ async function hmacHex(secret: string, msg: string): Promise<string> {
 export function inviteToken(env: Env, uid: number | string, hash: string): Promise<string> {
   return hmacHex(env.SESSION_SECRET, 'invite:' + uid + ':' + hash);
 }
+
+// Coloană (lazy) care marchează dacă un cont și-a setat parola. Implicit 1
+// (conturile existente sunt considerate active); conturile invitate se pun pe 0.
+let colEnsured = false;
+export async function ensureContActivat(env: Env): Promise<void> {
+  if (colEnsured) return;
+  try {
+    await env.DB.prepare('ALTER TABLE users ADD COLUMN cont_activat INTEGER NOT NULL DEFAULT 1').run();
+  } catch {
+    /* coloana există deja */
+  }
+  colEnsured = true;
+}
