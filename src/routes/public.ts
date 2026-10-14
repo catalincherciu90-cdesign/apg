@@ -327,6 +327,8 @@ function contactBody(s: Record<string, string>, success: boolean, error: string,
         <div class="form-group"><label>Email *</label><input type="email" name="email" value="${esc(v.email ?? '')}" required></div>
         <div class="form-group"><label>Telefon</label><input type="tel" name="telefon" value="${esc(v.telefon ?? '')}"></div>
         <div class="form-group"><label>Mesaj *</label><textarea name="mesaj" rows="5" placeholder="Scrie întrebarea sau mesajul tău..." required>${esc(v.mesaj ?? '')}</textarea></div>
+        <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true"><label>Lasă gol<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+        <div class="form-group"><label style="display:flex;align-items:center;gap:0.6rem;cursor:pointer;font-weight:400;"><input type="checkbox" name="confirm_uman" value="1" required style="width:auto;accent-color:var(--red);"> Confirm că nu sunt robot</label></div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Trimite mesajul</button>
     </form></div>`;
 
@@ -373,6 +375,8 @@ app.post('/contact', async (c) => {
   const email = String(form.get('email') ?? '').trim();
   const telefon = String(form.get('telefon') ?? '').trim();
   const mesaj = String(form.get('mesaj') ?? '').trim();
+  const honeypot = String(form.get('website') ?? '').trim();
+  const confirmUman = form.get('confirm_uman') !== null;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   let error = '';
@@ -381,6 +385,11 @@ app.post('/contact', async (c) => {
     error = 'Completează toate câmpurile obligatorii.';
   } else if (!emailValid) {
     error = 'Adresa de email nu este validă.';
+  } else if (!confirmUman) {
+    error = 'Bifează caseta „Confirm că nu sunt robot".';
+  } else if (honeypot) {
+    // Capcană anti-spam: botul a completat câmpul ascuns — ignorăm în tăcere.
+    success = true;
   } else {
     // Salvează mesajul în rubrica „Mesaje" din admin
     await ensureMesaje(c.env);
