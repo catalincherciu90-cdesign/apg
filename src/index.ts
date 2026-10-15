@@ -67,6 +67,20 @@ app.use('*', async (c, next) => {
   }
 });
 
+// Digital Asset Links — verificarea aplicației Android (TWA) pentru admin.
+app.get('/.well-known/assetlinks.json', (c) =>
+  c.json([
+    {
+      relation: ['delegate_permission/common.handle_all_urls'],
+      target: {
+        namespace: 'android_app',
+        package_name: 'ro.apggarage.admin',
+        sha256_cert_fingerprints: ['36:0E:A8:54:9F:96:26:EA:64:28:2F:6E:43:BC:89:DD:C1:3F:B7:5E:76:12:0F:A0:14:D6:23:EC:39:AF:50:35'],
+      },
+    },
+  ]),
+);
+
 // SEO: robots.txt + sitemap.xml
 app.get('/robots.txt', (c) =>
   c.text(
