@@ -2,6 +2,11 @@ name: Build APK admin
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'twa/**'
+      - '.github/workflows/build-apk.yml'
 
 jobs:
   build:
