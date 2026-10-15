@@ -1,0 +1,59 @@
+name: Build APK admin
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Configure Bubblewrap toolchain
+        run: |
+          mkdir -p ~/.bubblewrap
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$ANDROID_SDK_ROOT" > ~/.bubblewrap/config.json
+          cat ~/.bubblewrap/config.json
+          yes | "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager --licenses >/dev/null 2>&1 || true
+
+      - name: Build APK
+        working-directory: twa
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ApgGarage2026
+          BUBBLEWRAP_KEY_PASSWORD: ApgGarage2026
+        run: |
+          set -e
+          bubblewrap update --skipVersionUpgrade || bubblewrap init --manifest https://apg-garage.ro/manifest-admin.json --directory . || true
+          bubblewrap build --skipPwaValidation
+          echo "=== output ==="
+          ls -la
+
+      - name: Publish APK to site
+        run: |
+          mkdir -p public/download
+          cp twa/app-release-signed.apk public/download/apg-admin.apk
+          ls -la public/download/
+          git config user.name "APK Builder"
+          git config user.email "noreply@apg-garage.ro"
+          git add public/download/apg-admin.apk
+          git commit -m "Build APK admin [skip ci]" || echo "fara modificari"
+          git push origin main

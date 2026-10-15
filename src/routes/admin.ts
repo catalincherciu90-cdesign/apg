@@ -15,6 +15,7 @@ import recenzii from './admin/recenzii';
 import statistici from './admin/statistici';
 import serviciiSeo from './admin/servicii-seo';
 import ghid from './admin/ghid';
+import aplicatie from './admin/aplicatie';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -94,5 +95,6 @@ app.route('/', recenzii); // /admin/recenzii
 app.route('/', statistici); // /admin/statistici
 app.route('/', serviciiSeo); // /admin/pagini-servicii
 app.route('/', ghid); // /admin/ghid
+app.route('/', aplicatie); // /admin/aplicatie
 
 export default app;
